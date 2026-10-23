@@ -127,8 +127,9 @@ class Builder:
                 cells = rows[i]['tableCells']
                 vals = [row['id']] + row['cells']
                 for j, v in enumerate(vals): jobs.append((s.cell_start(cells[j]), v, None))
-                jobs.append((s.cell_start(cells[len(vals)]), 'Sefaria', {'url': row['url']}))
-                jobs.append((s.cell_start(cells[len(vals) + 1]), None, 'chip'))
+                if 'Sefaria' in hdr:   # parts about the text have a Sefaria link column; others (layout, front matter) don't
+                    jobs.append((s.cell_start(cells[hdr.index('Sefaria')]), 'Sefaria', {'url': row['url']}))
+                jobs.append((s.cell_start(cells[hdr.index('Decision')]), None, 'chip'))
         reqs = [{'createDropdownDefinition': {'dropdownDefinition': {'dropdownDefinitionId': DD, 'dropdownDefinitionProperties': {
             'title': 'Decision', 'options': [{'optionId': 'dropdownItem.' + i, 'displayValue': t_, 'textStyle': {'backgroundColor': rgb(col)}} for i, t_, col in OPTS]}}}}]
         s.batch(reqs + s.fill('t.0', jobs))
