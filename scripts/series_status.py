@@ -104,6 +104,17 @@ def main():
         b['warnings'].append('more than one full-book PDF: keep only the latest')
     rep['book'] = b
 
+    # front matter (its own file since 23 Oct 2026) and review docs that belong to no single parasha
+    names = {p['parasha'] for p in book['parashot']}
+    fpdf = 'front/Ibn Ezra on the Torah - Front Matter.pdf'
+    rep['front'] = {'pdf': fpdf if os.path.exists(fpdf) else None, 'warnings': []}
+    if not os.path.exists(fpdf):
+        rep['front']['warnings'].append('no front matter PDF (bereshit/scripts/render.py ... frontonly)')
+    elif ctime(fpdf) < ctime('bereshit/data/front.json'):
+        rep['front']['warnings'].append('front matter PDF older than bereshit/data/front.json: rebuild it')
+    rep['other_reviews'] = [{'parasha': d['parasha'], 'list': d['list'], 'rows': d.get('rows'), 'checked': d.get('checked'),
+                             'link': f"https://docs.google.com/document/d/{d['id']}/edit"}
+                            for d in reg if d['parasha'] not in names and d['status'] in ('open', 'answered')]
     last = book['parashot'][-1]['parasha']
     nxt = TORAH[TORAH.index(last) + 1] if last in TORAH and TORAH.index(last) + 1 < len(TORAH) else None
     rep['next'] = {'parasha': nxt, 'first_page': book.get('next_first_page')}
@@ -126,6 +137,11 @@ def main():
             print(f"  ! {w}")
         if not r['warnings']:
             print('  everything built from the latest data')
+    print(f"\nFront matter (pages i–v): {os.path.basename(rep['front']['pdf']) if rep['front']['pdf'] else 'none'}")
+    for w in rep['front']['warnings']:
+        print(f'  ! {w}')
+    for d in rep['other_reviews']:
+        print(f"  review OPEN: {d['parasha']} List {d['list']} ({d['rows']} rows) {d['link']}  [{d['checked'] or 'not checked'}]")
     print(f"\nFull book: {', '.join(os.path.basename(x) for x in rep['book']['files']) or 'none'}")
     for w in rep['book']['warnings']:
         print(f'  ! {w}')
