@@ -86,7 +86,7 @@ def main():
         docs = [d for d in reg if d['parasha'] == name]
         r['open_reviews'] = [{'list': d['list'], 'title': d.get('title'), 'status': d['status'],
                               'rows': d.get('rows'), 'checked': d.get('checked'),
-                              'link': f"https://docs.google.com/document/d/{d['id']}/edit" if d.get('id') else None}
+                              'link': f"https://docs.google.com/{"spreadsheets" if d.get("kind")=="Google Sheet" else "document"}/d/{d["id"]}/edit" if d.get('id') else None}
                              for d in docs if d['status'] in ('open', 'answered')]
         r['review_notes'] = [d['note'] for d in docs if d.get('note') and d['status'] == 'applied']
         rep['parashot'].append(r)
@@ -113,7 +113,7 @@ def main():
     elif ctime(fpdf) < ctime('bereshit/data/front.json'):
         rep['front']['warnings'].append('front matter PDF older than bereshit/data/front.json: rebuild it')
     rep['other_reviews'] = [{'parasha': d['parasha'], 'list': d['list'], 'rows': d.get('rows'), 'checked': d.get('checked'),
-                             'link': f"https://docs.google.com/document/d/{d['id']}/edit"}
+                             'link': f"https://docs.google.com/{"spreadsheets" if d.get("kind")=="Google Sheet" else "document"}/d/{d["id"]}/edit"}
                             for d in reg if d['parasha'] not in names and d['status'] in ('open', 'answered')]
     last = book['parashot'][-1]['parasha']
     nxt = TORAH[TORAH.index(last) + 1] if last in TORAH and TORAH.index(last) + 1 < len(TORAH) else None
