@@ -263,6 +263,114 @@ class Builder:
         s.batch(s.fill('t.0', jm + hdr))
         s.batch(s.fill(s.etab, je))
 
+    # ---- add a Part to a doc David has already started answering (no rebuild, answers kept) ----
+    def append_part(s, doc_id, part, rows, before='What the check found clean', how_find=None, how_add=None):
+        """part = [letter, heading, sentence, headers, widths]; rows as in listN_rows.json (all of that part).
+        Inserts the heading, sentence and table on the main tab just before the paragraph `before`
+        (or at the end), appends the matching Explanations section, fills chips (Unanswered), styles
+        only the new tables and links the new rows both ways. Existing rows, chips and notes are not touched.
+        how_find/how_add: optionally insert how_add right after the text how_find in the How-to-use paragraph."""
+        s.id = doc_id; s.rows = rows
+        letter, head, sent, hdr, w = part
+        L = lambda t: len(t.encode('utf-16-le')) // 2
+        tabs = s.get()
+        s.etab = [k for k, t in tabs.items() if t['tabProperties'].get('title') == 'Explanations'][0]
+        dd = find_key(tabs['t.0'], 'dropdownDefinitionId') or DD
+        content = tabs['t.0']['documentTab']['body']['content']
+        P = next((el['startIndex'] for el in content if 'paragraph' in el and ptext(el).strip() == before), content[-1]['endIndex'] - 1)
+        s.batch([{'insertText': {'location': s.loc(P, 't.0'), 'text': head + '\n' + sent + '\n'}},
+                 {'insertTable': {'location': s.loc(P + L(head) + 1 + L(sent), 't.0'), 'rows': len(rows) + 1, 'columns': len(hdr)}}])
+        hs, ss = P, P + L(head) + 1
+        s.batch([{'updateParagraphStyle': {'range': s.rng(hs, hs + L(head) + 1, 't.0'), 'paragraphStyle': {'namedStyleType': 'HEADING_1'}, 'fields': 'namedStyleType'}},
+                 {'updateParagraphStyle': {'range': s.rng(ss, ss + L(sent) + 1, 't.0'), 'paragraphStyle': {'namedStyleType': 'NORMAL_TEXT'}, 'fields': 'namedStyleType'}},
+                 {'updateTextStyle': {'range': s.rng(hs, hs + L(head), 't.0'), 'textStyle': {'weightedFontFamily': {'fontFamily': 'Georgia', 'weight': 400}, 'bold': False, 'foregroundColor': rgb(INK)}, 'fields': 'weightedFontFamily,bold,foregroundColor,fontSize'}},
+                 {'updateTextStyle': {'range': s.rng(ss, ss + L(sent), 't.0'), 'textStyle': {'weightedFontFamily': {'fontFamily': 'Inter', 'weight': 400}, 'bold': False, 'foregroundColor': rgb(INK), 'fontSize': {'magnitude': 11, 'unit': 'PT'}}, 'fields': 'weightedFontFamily,bold,foregroundColor,fontSize'}}])
+
+        def new_table(content, after_text):
+            seen = False
+            for el in content:
+                if 'paragraph' in el and ptext(el).strip() == after_text: seen = True
+                elif seen and 'table' in el: return el
+            raise RuntimeError('new table not found after ' + after_text)
+
+        t = new_table(s.body('t.0'), sent)
+        tr = t['table']['tableRows']; jobs = []
+        for j, h in enumerate(hdr): jobs.append((s.cell_start(tr[0]['tableCells'][j]), h, None))
+        for i, row in enumerate(rows, 1):
+            cells = tr[i]['tableCells']
+            for j, v in enumerate([row['id']] + row['cells']): jobs.append((s.cell_start(cells[j]), v, None))
+            if 'Sefaria' in hdr: jobs.append((s.cell_start(cells[hdr.index('Sefaria')]), 'Sefaria', {'url': row['url']}))
+            jobs.append((s.cell_start(cells[hdr.index('Decision')]), None, 'chip'))
+        reqs = s.fill('t.0', jobs)
+        for q in reqs:
+            if 'insertDropdown' in q: q['insertDropdown']['dropdownDefinitionId'] = dd
+        s.batch(reqs)
+
+        # Explanations: appended at the end of its tab
+        s.structure(s.etab, [('H2', head), ('table', (len(rows) + 1, 5))])
+        econ = s.body(s.etab)
+        hp = [el for el in econ if 'paragraph' in el and ptext(el).strip() == head][-1]
+        s.batch([{'updateParagraphStyle': {'range': s.rng(hp['startIndex'], hp['endIndex'], s.etab), 'paragraphStyle': {'namedStyleType': 'HEADING_2'}, 'fields': 'namedStyleType'}},
+                 {'updateTextStyle': {'range': s.rng(hp['startIndex'], hp['endIndex'] - 1, s.etab), 'textStyle': {'weightedFontFamily': {'fontFamily': 'Georgia', 'weight': 400}, 'bold': False, 'foregroundColor': rgb(INK)}, 'fields': 'weightedFontFamily,bold,foregroundColor,fontSize'}}])
+        et = new_table(s.body(s.etab), head); er = et['table']['tableRows']; jobs = []
+        for j, h in enumerate(EXPL_HEAD): jobs.append((s.cell_start(er[0]['tableCells'][j]), h, None))
+        for i, row in enumerate(rows, 1):
+            for j, v in enumerate([row['id'], row['plain'], row['stands'], row['changed']]):
+                jobs.append((s.cell_start(er[i]['tableCells'][j]), v, None))
+        s.batch(s.fill(s.etab, jobs))
+
+        # styles, new tables only
+        for tab, after, widths, size, heb in [('t.0', sent, w, 11, 12), (s.etab, head, EXPL_W, 9, 11)]:
+            tb = new_table(s.body(tab), after); s.batch(s._style_table(tab, tb, widths, size, heb))
+
+        # links both ways, new rows only
+        tabs = s.get()
+        Mt = new_table(tabs['t.0']['documentTab']['body']['content'], sent)
+        Et = new_table(tabs[s.etab]['documentTab']['body']['content'], head)
+        M = s.heading_ids([Mt]); E = s.heading_ids([Et])
+        jm = [(s.cell_start(row['tableCells'][-1]), f'Open {rid}', {'heading': {'id': E[rid][0], 'tabId': s.etab}}) for rid, (hid, row) in M.items()]
+        je = [(s.cell_start(row['tableCells'][-1]), f'↩ Back to {rid}', {'heading': {'id': M[rid][0], 'tabId': 't.0'}}) for rid, (hid, row) in E.items()]
+        s.batch(s.fill('t.0', jm)); s.batch(s.fill(s.etab, je))
+
+        # optional: a sentence in How to use
+        if how_find and how_add:
+            for el in s.body('t.0'):
+                tx = ptext(el)
+                if 'paragraph' in el and how_find in tx and how_add not in tx:
+                    at = el['startIndex'] + L(tx[:tx.index(how_find) + len(how_find)])
+                    s.batch([{'insertText': {'location': s.loc(at, 't.0'), 'text': how_add}}]); break
+        return s.verify()
+
+    def _style_table(s, tab, t, widths, size, heb_size):
+        reqs = []; st = t['startIndex']; rows = t['table']['tableRows']; ncol = len(rows[0]['tableCells'])
+        reqs.append({'updateTextStyle': {'range': s.rng(st + 1, t['endIndex'] - 1, tab), 'textStyle': {'weightedFontFamily': {'fontFamily': 'Inter', 'weight': 400}, 'bold': False, 'foregroundColor': rgb(INK), 'fontSize': {'magnitude': size, 'unit': 'PT'}},
+                                         'fields': 'weightedFontFamily,bold,foregroundColor,fontSize'}})
+        for row in rows[1:]:
+            c0 = row['tableCells'][0]['content'][0]
+            reqs.append({'updateParagraphStyle': {'range': s.rng(c0['startIndex'], c0['endIndex'], tab), 'paragraphStyle': {'namedStyleType': 'HEADING_4', 'spaceAbove': {'magnitude': 0, 'unit': 'PT'}, 'spaceBelow': {'magnitude': 0, 'unit': 'PT'}},
+                                                  'fields': 'namedStyleType,spaceAbove,spaceBelow'}})
+            reqs.append({'updateTextStyle': {'range': s.rng(c0['startIndex'], c0['endIndex'] - 1, tab), 'textStyle': {'italic': False}, 'fields': 'italic'}})
+        border = {'color': rgb(LINE), 'width': {'magnitude': 1, 'unit': 'PT'}, 'dashStyle': 'SOLID'}
+        reqs.append({'updateTableCellStyle': {'tableStartLocation': s.loc(st, tab), 'tableCellStyle': {'backgroundColor': rgb(WHITE), 'borderLeft': border, 'borderRight': border, 'borderTop': border, 'borderBottom': border},
+                                              'fields': 'backgroundColor,borderLeft,borderRight,borderTop,borderBottom'}})
+        reqs.append({'updateTableCellStyle': {'tableRange': {'tableCellLocation': {'tableStartLocation': s.loc(st, tab), 'rowIndex': 0, 'columnIndex': 0}, 'rowSpan': 1, 'columnSpan': ncol},
+                                              'tableCellStyle': {'backgroundColor': rgb(HFILL)}, 'fields': 'backgroundColor'}})
+        for cell in rows[0]['tableCells']:
+            a, b = cell['content'][0]['startIndex'], cell['content'][-1]['endIndex']
+            reqs.append({'updateTextStyle': {'range': s.rng(a, b - 1, tab), 'textStyle': {'foregroundColor': rgb(GREY)}, 'fields': 'foregroundColor'}})
+        for row in rows[1:]:
+            for cell in row['tableCells']:
+                for p in cell['content']:
+                    if 'paragraph' not in p: continue
+                    tx = ptext(p)
+                    if HEB.search(tx) and not LAT.search(tx):
+                        reqs.append({'updateParagraphStyle': {'range': s.rng(p['startIndex'], p['endIndex'], tab), 'paragraphStyle': {'direction': 'RIGHT_TO_LEFT', 'alignment': 'START'}, 'fields': 'direction,alignment'}})
+                        reqs.append({'updateTextStyle': {'range': s.rng(p['startIndex'], p['endIndex'] - 1, tab), 'textStyle': {'weightedFontFamily': {'fontFamily': 'Frank Ruhl Libre', 'weight': 400}, 'fontSize': {'magnitude': heb_size, 'unit': 'PT'}}, 'fields': 'weightedFontFamily,fontSize'}})
+        for ci, wd in enumerate(widths):
+            reqs.append({'updateTableColumnProperties': {'tableStartLocation': s.loc(st, tab), 'columnIndices': [ci], 'tableColumnProperties': {'widthType': 'FIXED_WIDTH', 'width': {'magnitude': wd, 'unit': 'PT'}}, 'fields': 'width,widthType'}})
+        reqs.append({'pinTableHeaderRows': {'tableStartLocation': s.loc(st, tab), 'pinnedHeaderRowsCount': 1}})
+        return reqs
+
     # ---- verify ----
     def verify(s):
         tabs = s.get(); bad = []
