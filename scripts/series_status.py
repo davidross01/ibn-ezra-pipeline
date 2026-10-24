@@ -137,7 +137,7 @@ def main():
             print(f"  ! {w}")
         if not r['warnings']:
             print('  everything built from the latest data')
-    print(f"\nFront matter (pages i–v): {os.path.basename(rep['front']['pdf']) if rep['front']['pdf'] else 'none'}")
+    print(f"\nFront matter (pages i–x): {os.path.basename(rep['front']['pdf']) if rep['front']['pdf'] else 'none'}")
     for w in rep['front']['warnings']:
         print(f'  ! {w}')
     for d in rep['other_reviews']:
