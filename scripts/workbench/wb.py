@@ -94,11 +94,34 @@ def find_review(key):
     return hits[0]
 
 
-def read_answers(key, commit=True, show=True):
-    """Read only ID / Decision / Your note from a review Google Doc (main tab).
-    Saves <rows_file folder>/<listN_>answers.json to GitHub and prints a short summary."""
-    meta = find_review(key)
-    doc = _run('GOOGLEDOCS_GET_DOCUMENT_BY_ID', {'id': meta['id'], 'includeTabsContent': True}, account=DOCS)
+def _unwrap(doc):
+    for k in ('document', 'data', 'response_data'):
+        if isinstance(doc, dict) and k in doc and 'tabs' not in doc and 'body' not in doc:
+            doc = doc[k]
+    return doc
+
+
+def _link_check(doc, rows_file):
+    """Run scripts/check_review_doc.py (chips, Open/Back links, IDs) on the doc, here in the workbench."""
+    import subprocess
+    json.dump(doc, open('/mnt/files/rv_doc.json', 'w'), ensure_ascii=False)
+    open('/mnt/files/rv_check.py', 'wb').write(gh_bytes('scripts/check_review_doc.py'))
+    args = ['python3', '-I', '/mnt/files/rv_check.py', '/mnt/files/rv_doc.json']
+    if rows_file:
+        open('/mnt/files/rv_rows.json', 'wb').write(gh_bytes(rows_file)); args += ['--rows', '/mnt/files/rv_rows.json']
+    r = subprocess.run(args, capture_output=True, text=True)
+    lines = (r.stdout + r.stderr).splitlines()
+    if r.returncode == 0:
+        return 'OK: one chip per row, every Open and Back link lands on its own row'
+    i = next((i for i, l in enumerate(lines) if l.startswith('PROBLEMS')), None)
+    return [l.strip(' -') for l in lines[i + 1:]] if i is not None else lines[-3:]
+
+
+def read_answers(key, commit=True, show=True, check_links=True, meta=None):
+    """Read only ID / Decision / Your note from a review Google Doc (main tab), check its chips and links,
+    save <rows file> -> answers.json to GitHub and print a short summary. Returns the answers dict."""
+    meta = meta or find_review(key)
+    doc = _unwrap(_run('GOOGLEDOCS_GET_DOCUMENT_BY_ID', {'id': meta['id'], 'includeTabsContent': True}, account=DOCS))
     body, title = _first_tab_body(doc)
     rows, seen = [], set()
     for el in body:
@@ -136,9 +159,16 @@ def read_answers(key, commit=True, show=True):
         out['not_in_rows_file'] = [i for i in got if want and i not in want]
     except Exception as ex:
         out['rows_check'] = f'not checked: {ex}'
-    path =(rf.replace('rows.json', 'answers.json') if rf.endswith('rows.json') else (rf.rsplit('/', 1)[0] + '/answers.json' if '/' in rf else 'answers.json'))
+    if check_links:
+        try:
+            out['link_check'] = _link_check(doc, rf)
+        except Exception as ex:
+            out['link_check'] = [f'not checked: {ex}']
+    out['link'] = f"https://docs.google.com/document/d/{meta['id']}/edit"
+    path = (rf.replace('rows.json', 'answers.json') if rf.endswith('rows.json') else (rf.rsplit('/', 1)[0] + '/answers.json' if '/' in rf else 'answers.json'))
+    out['_path'] = path
     if commit:
-        gh_commit({path: json.dumps(out, ensure_ascii=False, indent=1) + '\n'},
+        gh_commit({path: json.dumps({k: v for k, v in out.items() if k != '_path'}, ensure_ascii=False, indent=1) + '\n'},
                   f'Review answers read: {out["title"]} ({len(rows)} rows)')
     if show:
         print(f'{out["title"]}: {len(rows)} rows ' + json.dumps(counts, ensure_ascii=False) + (f'  -> {path}' if commit else ''))
@@ -146,10 +176,41 @@ def read_answers(key, commit=True, show=True):
             if out.get(k): print(f'  !! {k}: {out[k]}')
         if 'missing_from_doc' in out and not out['missing_from_doc'] and not out['not_in_rows_file']:
             print('  IDs match the rows file')
+        lc = out.get('link_check')
+        if lc:
+            print('  ' + lc if isinstance(lc, str) else '  !! chips/links: ' + '; '.join(lc[:8]))
         for r in rows:
             if r['note'] or r['decision'] not in ('Approve', 'Keep', 'Unanswered'):
                 print(f'  {r["id"]}: {r["decision"]}' + (f' | {r["note"][:300]}' if r['note'] else ''))
     return out
+
+
+def review_status(check_links=False):
+    """Read the answers of every open review doc (review_docs.json), save all answers.json files in one
+    commit, and print one short block per doc. Used by commentary-series-status."""
+    reg = gh_json('review_docs.json')['docs']
+    docs = [d for d in reg if d.get('id') and d.get('status') in ('open', 'answered') and d.get('kind', 'Google Doc') == 'Google Doc']
+    outs, files = [], {}
+    for d in docs:
+        try:
+            o = read_answers(d['id'], commit=False, show=False, check_links=check_links, meta=d)
+            outs.append(o)
+            files[o['_path']] = json.dumps({k: v for k, v in o.items() if k != '_path'}, ensure_ascii=False, indent=1) + '\n'
+        except Exception as ex:
+            print(f"!! {d.get('title')}: {ex}")
+    if files:
+        gh_commit(files, f'Review answers read: {len(files)} open review(s)')
+    for o in outs:
+        c = o['counts']; n = sum(c.values()); un = c.get('Unanswered', 0)
+        state = 'ALL ANSWERED - ready to apply' if un == 0 else f'{n - un} of {n} answered'
+        print(f"{o['title']}: {state} {json.dumps(c, ensure_ascii=False)}\n  {o['link']}  -> {o['_path']}")
+        for r in o['rows']:
+            if r['note'] or r['decision'] in ('Change', 'Discuss'):
+                print(f"  {r['id']}: {r['decision']}" + (f" | {r['note'][:200]}" if r['note'] else ''))
+        lc = o.get('link_check')
+        if lc and not isinstance(lc, str):
+            print('  !! chips/links: ' + '; '.join(lc[:8]))
+    return outs
 
 
 # ---------------------------------------------------------------- Drive refresh
