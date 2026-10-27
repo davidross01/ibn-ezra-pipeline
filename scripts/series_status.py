@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """One status report for the whole Ibn Ezra series. Read-only.
 
-Usage (repo top):  python3 -I scripts/series_status.py [--json]
+Usage (repo top):  python3 -I scripts/series_status.py [--checks] [--json]
+
+Answers come from each review's answers.json (refresh them first with review_status() in
+scripts/workbench/wb.py). --checks also runs scripts/check_all.py for every parasha (about 20 s).
+The report ends with NEXT: the actions in order, the first one being what to do now.
 
 For each parasha in book.json: status and pages, latest draft PDF, open review
 docs (from review_docs.json), and whether the parasha PDF, parts export, Key
@@ -47,6 +51,24 @@ def draft_key(p):
     return (1, 0) if p.endswith('final.pdf') else (0, int(m.group(1)) if m else -1)
 
 
+def answers_of(d):
+    rf = d.get('rows_file') or ''
+    p = rf.replace('rows.json', 'answers.json') if rf.endswith('rows.json') else None
+    if not p or not os.path.exists(p):
+        return None
+    a = json.load(open(p, encoding='utf-8'))
+    c = a.get('counts', {})
+    return {'read_at': a.get('read_at'), 'counts': c, 'total': sum(c.values()), 'open': c.get('Unanswered', 0),
+            'discuss': [r['id'] for r in a.get('rows', []) if r['decision'] == 'Discuss'],
+            'change': [r['id'] for r in a.get('rows', []) if r['decision'] == 'Change']}
+
+
+def check_result(folder):
+    r = subprocess.run([sys.executable, '-I', 'scripts/check_all.py', folder], capture_output=True, text=True)
+    lines = r.stdout.strip().splitlines()
+    return lines[-1].replace('RESULT: ', '') if lines else (r.stderr.strip().splitlines() or ['no output'])[-1]
+
+
 def main():
     book = json.load(open('book.json', encoding='utf-8'))
     reg = json.load(open('review_docs.json', encoding='utf-8'))['docs'] if os.path.exists('review_docs.json') else []
@@ -86,8 +108,11 @@ def main():
         docs = [d for d in reg if d['parasha'] == name]
         r['open_reviews'] = [{'list': d['list'], 'title': d.get('title'), 'status': d['status'],
                               'rows': d.get('rows'), 'checked': d.get('checked'),
-                              'link': f"https://docs.google.com/{"spreadsheets" if d.get("kind")=="Google Sheet" else "document"}/d/{d["id"]}/edit" if d.get('id') else None}
+                              'link': f"https://docs.google.com/{"spreadsheets" if d.get("kind")=="Google Sheet" else "document"}/d/{d["id"]}/edit" if d.get('id') else None,
+                              'answers': answers_of(d)}
                              for d in docs if d['status'] in ('open', 'answered')]
+        if '--checks' in sys.argv:
+            r['checks'] = check_result(f)
         r['review_notes'] = [d['note'] for d in docs if d.get('note') and d['status'] == 'applied']
         rep['parashot'].append(r)
 
@@ -112,12 +137,41 @@ def main():
         rep['front']['warnings'].append('no front matter PDF (bereshit/scripts/render.py ... frontonly)')
     elif ctime(fpdf) < ctime('bereshit/data/front.json'):
         rep['front']['warnings'].append('front matter PDF older than bereshit/data/front.json: rebuild it')
-    rep['other_reviews'] = [{'parasha': d['parasha'], 'list': d['list'], 'rows': d.get('rows'), 'checked': d.get('checked'),
-                             'link': f"https://docs.google.com/{"spreadsheets" if d.get("kind")=="Google Sheet" else "document"}/d/{d["id"]}/edit"}
+    rep['other_reviews'] = [{'parasha': d['parasha'], 'list': d['list'], 'title': d.get('title'), 'rows': d.get('rows'), 'checked': d.get('checked'),
+                             'link': f"https://docs.google.com/{"spreadsheets" if d.get("kind")=="Google Sheet" else "document"}/d/{d["id"]}/edit",
+                             'answers': answers_of(d)}
                             for d in reg if d['parasha'] not in names and d['status'] in ('open', 'answered')]
     last = book['parashot'][-1]['parasha']
     nxt = TORAH[TORAH.index(last) + 1] if last in TORAH and TORAH.index(last) + 1 < len(TORAH) else None
     rep['next'] = {'parasha': nxt, 'first_page': book.get('next_first_page')}
+    # next actions, most urgent first
+    acts = []
+    allrev = [(r['parasha'], d) for r in rep['parashot'] for d in r['open_reviews']] + [(d['parasha'], d) for d in rep['other_reviews']]
+    for who, d in allrev:
+        a = d.get('answers')
+        if a and a['open'] == 0:
+            extra = (f"; first explain Discuss {', '.join(a['discuss'])} and ask" if a['discuss'] else '')
+            acts.append((0, f"Apply {d.get('title') or who} — all {a['total']} answered{extra} (apply-review-decisions) {d['link']}"))
+    for r in rep['parashot']:
+        c = r.get('checks')
+        if c and c != 'clean':
+            acts.append((1 if 'final' in r['status'].lower() else 2, f"{r['parasha']}: check_all says {c}"))
+        for w in r['warnings']:
+            acts.append((2, f"{r['parasha']}: {w}"))
+    for w in rep['book']['warnings'] + rep['front']['warnings']:
+        acts.append((2, w))
+    for who, d in allrev:
+        a = d.get('answers')
+        if a and a['open']:
+            acts.append((3, f"Waiting on David: {d.get('title') or who} — {a['open']} of {a['total']} rows open {d['link']}"))
+        elif not a:
+            acts.append((3, f"Read the answers of {d.get('title') or who} (review_status() in the workbench) {d['link']}"))
+    lastp = book['parashot'][-1]
+    if lastp['status'].lower().startswith('final') and rep['next']['parasha']:
+        acts.append((4, f"Start {rep['next']['parasha']} at page {book.get('next_first_page')} (commentary-book-build)"))
+    elif rep['next']['parasha']:
+        acts.append((5, f"When {lastp['parasha']} is final: start {rep['next']['parasha']} (it can also start now, in parallel)"))
+    rep['actions'] = [t for _, t in sorted(acts, key=lambda x: x[0])]
     st = subprocess.run(['git', 'status', '--porcelain'], capture_output=True, text=True).stdout
     rep['uncommitted'] = [l for l in st.splitlines() if '__pycache__' not in l]
 
@@ -130,7 +184,11 @@ def main():
         print(f"  latest PDF: {os.path.basename(r['latest_pdf']) if r['latest_pdf'] else 'none'}; data last changed {r['data_changed']}")
         print(f"  Key Insights: {r['insights']}")
         for d in r['open_reviews']:
-            print(f"  review OPEN: List {d['list']} ({d['rows']} rows) {d['link']}  [{d['checked'] or 'not checked'}]")
+            a = d.get('answers')
+            ans = (f"{a['total'] - a['open']} of {a['total']} answered (read {a['read_at']})" if a else 'answers not read yet')
+            print(f"  review OPEN: List {d['list']}: {ans} {d['link']}")
+        if r.get('checks'):
+            print(f"  checks: {r['checks']}")
         for n in r['review_notes']:
             print(f"  review note: {n}")
         for w in r['warnings']:
@@ -141,12 +199,17 @@ def main():
     for w in rep['front']['warnings']:
         print(f'  ! {w}')
     for d in rep['other_reviews']:
-        print(f"  review OPEN: {d['parasha']} List {d['list']} ({d['rows']} rows) {d['link']}  [{d['checked'] or 'not checked'}]")
+        a = d.get('answers')
+        ans = (f"{a['total'] - a['open']} of {a['total']} answered (read {a['read_at']})" if a else 'answers not read yet')
+        print(f"  review OPEN: {d.get('title') or d['parasha']}: {ans} {d['link']}")
     print(f"\nFull book: {', '.join(os.path.basename(x) for x in rep['book']['files']) or 'none'}")
     for w in rep['book']['warnings']:
         print(f'  ! {w}')
     n = rep['next']
     print(f"\nNext parasha: {n['parasha']}, from page {n['first_page']}")
+    print('\nNEXT:')
+    for i, t in enumerate(rep['actions']):
+        print(('  -> ' if i == 0 else '     ') + t)
     if rep['uncommitted']:
         print(f"\nUncommitted changes ({len(rep['uncommitted'])}):")
         for l in rep['uncommitted'][:20]:
