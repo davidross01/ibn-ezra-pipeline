@@ -124,7 +124,7 @@ def read_answers(key, commit=True, show=True):
         key2 = r['decision'] if not (r['decision'] == 'Unanswered' and r['note']) else 'Note only'
         counts[key2] = counts.get(key2, 0) + 1
     out = {'doc_id': meta['id'], 'title': title or meta.get('title'),
-           'read_at': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%MZ'),
+           'read_at': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'),
            'counts': counts, 'rows': rows}
     rf = meta.get('rows_file') or ''
     path = (rf.replace('rows.json', 'answers.json') if rf.endswith('rows.json') else (rf.rsplit('/', 1)[0] + '/answers.json' if '/' in rf else 'answers.json'))
@@ -135,7 +135,7 @@ def read_answers(key, commit=True, show=True):
         print(f'{out["title"]}: {len(rows)} rows ' + json.dumps(counts, ensure_ascii=False) + (f'  -> {path}' if commit else ''))
         for r in rows:
             if r['note'] or r['decision'] not in ('Approve', 'Keep', 'Unanswered'):
-                print(f'  {r["id"]}: {r["decision"]}' + (f' — {r["note"][:300]}' if r['note'] else ''))
+                print(f'  {r["id"]}: {r["decision"]}' + (f' | {r["note"][:300]}' if r['note'] else ''))
     return out
 
 
