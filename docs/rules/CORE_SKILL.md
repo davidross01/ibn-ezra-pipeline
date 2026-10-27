@@ -1,0 +1,63 @@
+---
+name: "commentary-house-rules"
+description: "The one source of David's house rules for his translated Torah-commentary series (Ibn Ezra etc.): translation, Hebrew, grammar terms (his grammar sheet), misprints, review process, page look. Load it before any work on that series."
+---
+
+# House rules: David's commentary translation series
+
+The other series skills point here instead of repeating these rules. This file is the **core**: every rule in one line. The full wording, examples and history of each rule are in the repo davidross01/ibn-ezra-commentary (clone: /home/claude/ibn-ezra-commentary) under `docs/rules/`, moved there word for word on 27 Oct 2026:
+
+| File | Read it when |
+|---|---|
+| docs/rules/translation.md | translating, writing the verse band, Hashem/Elohim, place names, letters and vowels in the English, glosses |
+| docs/rules/grammar.md | any grammar term: David's glossary (Hebrew → English), the grammar sheet, terms_audit |
+| docs/rules/hebrew.md | pointing, letters against Sefaria, ketiv/qere, misprints and reference corrections |
+| docs/rules/notes.md | writing notes: Onkelos, Rashi, Radak, Rashbam, Ramban, grammar notes, Sefaria remarks |
+| docs/rules/review.md | making, reading or applying a review list; the checks before a draft |
+| docs/rules/page.md | layout, page numbers, front matter, foot strip, title pages |
+| docs/rules/sources.md | accounts, Sefaria endpoints, reading review docs, deliverables |
+
+Read the file for the task at hand before starting it; the one-liners below are a reminder, not the full rule. **Live facts are never kept in a skill**: page numbers and status come from book.json, the state of each review doc from review_docs.json, answers from `<rows file>` → answers.json. When a rule changes, change its file in docs/rules/ AND its line here (propose the skill update in the same turn), and commit the file.
+
+## Translation (translation.md)
+- The translation is David's own; never present another translation's wording as his. Literal by default; explain obscure passages in the note.
+- The verse band follows the commentator's reading, word for word where he comments on a word (check the next and previous verse's comments too); his preferred reading, else the first; awkward English gets [square brackets], not a standard rendering. Ibn Ezra quoting a verse uses that verse's translation.
+- Check against Strickman–Silver but never name Strickman, Silver, Weiser, Krinsky or "Sefaria's English edition" in the notes. No "Uncertain" labels and no hedges: state the likeliest reading; doubts go to the Editorial record or a review row.
+- הַשֵּׁם is always Hashem in small caps (H{sci}ashem{/sci}), never "the Name"/"the Lord". The Name in Hebrew inside the English is ה׳, never ד' (the Hebrew commentary keeps Sefaria's ד'). Where the verse's Name is read Elohim (Lech Lecha 15:2, 15:8), the verse band says Elohim — flag new cases as review rows.
+- Place names are transliterated (Sephardi; Ur Kasdim, Mitzrayim, Chevron…; the list is in translation.md); names of people and peoples stay; every parasha's review list has a Place names row.
+- Letters in the English are the letters themselves ({h}א{/h}); vowels by name with the sign on an alef: kamatz (אָ); dagesh in בּ, mappik in הּ; root types with the letters ({h}פ״א{/h}).
+- A word Ibn Ezra defines himself gets no English gloss of ours; never a guessed identification (stone, plant, animal).
+- Sephardi transliteration throughout (Shabbat, Bereshit, toledot).
+
+## Grammar (grammar.md)
+- Every grammar term is translated by David's glossary in grammar.md, the same way every time; Ibn Ezra's own sense wins (◆ in the key to terms). Unsure → best reading in the note, plus a row in the review's grammar Part. terms_audit runs inside check_book.
+
+## Hebrew (hebrew.md)
+- Never retype Hebrew from memory; substitute inside existing strings; match by consonants. Show David pointed Hebrew, no transliteration.
+- The letters of the Hebrew commentary are Sefaria's, letter for letter (consonant_check must print differences: 0; fix_letters.py moves vowels onto Ibn Ezra's ו/י). Lemmas and Scripture quotations take the Masorah's vowels (MAM); words Sefaria already points keep Sefaria's marks; abbreviations, ד', letter names, book names and numbers stay unpointed.
+- Ketiv/qere in the verse band: written form unpointed, then the reading pointed in [ ].
+- Misprint: (printed) [correction], the correction pointed, the English follows it, and a {i}Text.{/i} line in the note of the same verse. A wrong reference: correction inside the round brackets: (תהלים קמח ה [קמח ח]). Variants and emendations are David's choice, never silent.
+
+## Notes (notes.md)
+- Onkelos is a main commentator on par with Rashi (commentary-onkelos-notes skill): Aramaic copied by script ({o:i-j}), English ours, יְיָ prints ה׳.
+- Rashi throughout; Radak where he discusses or notably explains Ibn Ezra; Rashbam wherever useful (only where his text survives on Sefaria); Ramban only where he quotes or adds to Ibn Ezra's view. Keep the preface's list of commentators true.
+- Grammar notes explain the point: plain point → "A reader might think …" → proof and why it matters; add to notes, never take away.
+- A note never mentions the review list, "not checked", "agrees with Sefaria", "checked on Sefaria" or headword remarks; a Text line only when something differs. No per-section source lines. Run review_grammar/all/clean.py --check before each draft.
+
+## Review (review.md)
+- When David asks to add or change something, it becomes a review row; no new draft unless he asks for one, says to apply answered rows, asks for a layout fix, or says yes to applying now when asked with checkboxes.
+- One review doc per parasha (Google Doc in davross846, Decision chips, Explanations tab, Sefaria column with a one-word link); archive it when applied. Only answered rows are applied; read the list's own "How to use" for what Approve/Keep mean; never overwrite David's Decision or note.
+- Read answers with `read_answers()` (scripts/workbench/wb.py, in the Composio workbench), never by loading the whole doc into the conversation.
+- Discuss rows: explain plainly, then ask with checkboxes in the same turn. A rule David states once becomes standing only when saved here.
+- Before each draft: `python3 -I scripts/check_all.py <folder>` — read every NEW hit, then `--accept`. Also read the front matter when a rule changes.
+
+## Page look (page.md)
+- Seforno-volume template: verse band (Hebrew 19.6/28 px, English on the same first line, פ/ס marks, new paragraph at a chapter), Hebrew commentary, English commentary, two-column notes (no chapter numbers), foot strip of very simple definitions.
+- Comments go on the page of their verse; notes stay with it where they fit (NB = 100, STRETCH 0.15 — don't tighten); no overlap warnings in a draft that is sent.
+- One book, page numbers continuous from book.json; a page-count change means rebuilding every later parasha and its booklet. Front matter (i–x) once at the start; each parasha has its own title page and ends פ פ פ.
+- Licensing and print set-up not decided: don't change credits, trim, margins or font embedding.
+
+## Sources and delivery (sources.md)
+- Google files only in davross846@gmail.com (Composio googledocs_spinet-dirk, googledrive_pulse-dwang); never filmgoingpro. GitHub through Composio: default account.
+- Sefaria through the Sefaria MCP tool (endpoints in sources.md); Rashi, Talmud and Midrash comparisons checked there.
+- Drafts: "<Commentator> <Parasha> - draft N.pdf" / "- final.pdf", sent with SendUserFile with page count and what changed. When final: export_parts.py, the Key Insights booklet, publish_pdfs.py, then refresh the Drive folder with `refresh_drive()` (wb.py).

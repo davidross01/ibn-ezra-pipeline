@@ -127,12 +127,25 @@ def read_answers(key, commit=True, show=True):
            'read_at': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'),
            'counts': counts, 'rows': rows}
     rf = meta.get('rows_file') or ''
-    path = (rf.replace('rows.json', 'answers.json') if rf.endswith('rows.json') else (rf.rsplit('/', 1)[0] + '/answers.json' if '/' in rf else 'answers.json'))
+    try:      # every row of the rows file must be in the doc, and nothing else
+        rr = gh_json(rf) if rf else None
+        rr = rr if isinstance(rr, list) else (rr or {}).get('rows', [])
+        want = [x.get('id') or x.get('ID') for x in rr if isinstance(x, dict)]
+        got = [r['id'] for r in rows]
+        out['missing_from_doc'] = [i for i in want if i and i not in got]
+        out['not_in_rows_file'] = [i for i in got if want and i not in want]
+    except Exception as ex:
+        out['rows_check'] = f'not checked: {ex}'
+    path =(rf.replace('rows.json', 'answers.json') if rf.endswith('rows.json') else (rf.rsplit('/', 1)[0] + '/answers.json' if '/' in rf else 'answers.json'))
     if commit:
         gh_commit({path: json.dumps(out, ensure_ascii=False, indent=1) + '\n'},
                   f'Review answers read: {out["title"]} ({len(rows)} rows)')
     if show:
         print(f'{out["title"]}: {len(rows)} rows ' + json.dumps(counts, ensure_ascii=False) + (f'  -> {path}' if commit else ''))
+        for k in ('missing_from_doc', 'not_in_rows_file', 'rows_check'):
+            if out.get(k): print(f'  !! {k}: {out[k]}')
+        if 'missing_from_doc' in out and not out['missing_from_doc'] and not out['not_in_rows_file']:
+            print('  IDs match the rows file')
         for r in rows:
             if r['note'] or r['decision'] not in ('Approve', 'Keep', 'Unanswered'):
                 print(f'  {r["id"]}: {r["decision"]}' + (f' | {r["note"][:300]}' if r['note'] else ''))
