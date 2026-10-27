@@ -9,7 +9,8 @@ Usage (repo top):
 
 For each row it prints the doc link, Where, Issue, Now, Alternative, the Explanations-tab text
 ("as it stands" / "if changed"), the Sefaria link, and David's answer from answers.json
-(written by read_answers() in scripts/workbench/wb.py; run it first if the answers may be stale).
+(written by read_answers() in scripts/workbench/wb.py; run it first if the answers may be stale),
+and any answer David gave in chat (chat_answers.json next to the rows file: {id: {decision, note, date}}).
 """
 import json, os, sys
 
@@ -39,6 +40,8 @@ def main():
     ap = os.path.join(ROOT, rf.replace('rows.json', 'answers.json'))
     ans = {r['id']: r for r in json.load(open(ap, encoding='utf-8'))['rows']} if os.path.exists(ap) else {}
     read_at = json.load(open(ap, encoding='utf-8')).get('read_at') if ans else None
+    cp = os.path.join(ROOT, rf.replace('rows.json', 'chat_answers.json'))
+    chat = json.load(open(cp, encoding='utf-8')) if os.path.exists(cp) else {}
     cfgp = [os.path.join(ROOT, os.path.dirname(rf), n) for n in ('doc_cfg.json', os.path.basename(rf).replace('rows.json', 'doc_cfg.json'))]
     heads = {}
     for c in cfgp:
@@ -66,6 +69,9 @@ def main():
         for h, c in zip(hh, r.get('cells', [])):
             print(f"{h}: {c}")
         print(f"Answer: {d.get('decision', 'Unanswered')}" + (f" | note: {d['note']}" if d.get('note') else ''))
+        if r['id'] in chat:
+            c = chat[r['id']]
+            print(f"Answered in chat ({c.get('date')}): {c.get('decision')}" + (f" | {c['note']}" if c.get('note') else ''))
         if r.get('plain'):
             print('Explanation: ' + r['plain'].split('\n', 1)[-1])
         for k in ('stands', 'changed'):
