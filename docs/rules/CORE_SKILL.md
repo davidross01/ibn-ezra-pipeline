@@ -17,7 +17,15 @@ The other series skills point here instead of repeating these rules. This file i
 | docs/rules/page.md | layout, page numbers, front matter, foot strip, title pages |
 | docs/rules/sources.md | accounts, Sefaria endpoints, reading review docs, deliverables |
 
-Read the file for the task at hand before starting it; the one-liners below are a reminder, not the full rule. **Live facts are never kept in a skill**: page numbers and status come from book.json, the state of each review doc from review_docs.json, answers from `<rows file>` → answers.json. When a rule changes, change its file in docs/rules/ AND its line here (propose the skill update in the same turn), and commit the file.
+Read the file for the task at hand before starting it; the one-liners below are a reminder, not the full rule. **Live facts are never kept in a skill**: page numbers and status come from book.json, the state of each review doc from review_docs.json, answers from `<rows file>` → answers.json.
+
+## A new rule from David (do all of it in the same turn)
+When David states a rule in chat ("it should be ה׳", "place names are transliterated"), or a review answer sets one for the whole book:
+1. **Rule file:** add it to the right docs/rules/*.md, with his words and the date, and commit.
+2. **Core line:** add or change its one line here, and propose the skill update (propose_skills) in the same turn.
+3. **Check:** if a program can test it (a word, a sign, a pattern, a count), add the test to `own_checks` in scripts/check_all.py, run it on every parasha, and `--accept` only hits that are already right; real hits are fixed or become review rows.
+4. **The book:** applying it to drafts David has seen follows the review rules below (a row, unless he says to apply now); a new parasha has it from draft 1.
+5. Say in one line where it was saved and whether the check now covers it.
 
 ## Translation (translation.md)
 - The translation is David's own; never present another translation's wording as his. Literal by default; explain obscure passages in the note.
@@ -48,7 +56,8 @@ Read the file for the task at hand before starting it; the one-liners below are 
 - When David asks to add or change something, it becomes a review row; no new draft unless he asks for one, says to apply answered rows, asks for a layout fix, or says yes to applying now when asked with checkboxes.
 - One review doc per parasha (Google Doc in davross846, Decision chips, Explanations tab, Sefaria column with a one-word link); archive it when applied. Only answered rows are applied; read the list's own "How to use" for what Approve/Keep mean; never overwrite David's Decision or note.
 - Read answers with `read_answers()` (scripts/workbench/wb.py, in the Composio workbench), never by loading the whole doc into the conversation.
-- Discuss rows: explain plainly, then ask with checkboxes in the same turn. A rule David states once becomes standing only when saved here.
+- Explain rows with `python3 -I scripts/explain_rows.py <review> <IDs | --discuss>` (from the repo; no Google call) — explain-commentary-row.
+- Discuss rows: explain plainly, then ask with checkboxes in the same turn; save his chat answer to `<rows file>` → chat_answers.json ({id: {decision, note, date}}), which counts as his answer when applying (his chip in the doc is never changed). A rule David states once becomes standing only when saved here (see "A new rule from David").
 - Before each draft: `python3 -I scripts/check_all.py <folder>` — read every NEW hit, then `--accept`. Also read the front matter when a rule changes.
 
 ## Page look (page.md)
