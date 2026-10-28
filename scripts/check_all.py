@@ -11,6 +11,7 @@ misprint scan, the house-rule and layout report (check_book), and these, which w
   - every (printed) [correction] in the Hebrew commentary has a {i}Text.{/i} line in a note on that verse
   - every Onkelos entry (work/onkelos.py) is in the model, with the Aramaic as copied from onkelos.json
   - the Name inside the English is ה׳, not ד'
+  - every word of the Hebrew commentary is pointed in full (scripts/partial_vowels.py; David, 28 Oct 2026)
   - every Hebrew span in the comments and notes comes from a source (scripts/source_check.py): "not found"
     and "only far from the verse" hits are read like vowel hits; no {q:}/{o:} marker is left unresolved
   - page numbers: book.json continuous, parasha.json first_page = book.json, last build (build/rep.json)
@@ -73,7 +74,10 @@ def plain(t):
 
 
 def own_checks(folder, M):
-    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Hebrew sources': [], 'markers': [], 'pages': []}
+    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'markers': [], 'pages': []}
+    # every word pointed in full (Vowels Review 1, E1)
+    sys.path.insert(0, os.path.join(ROOT, 'scripts')); import partial_vowels
+    out['Partly pointed'] = [f'{c}:{v} {w}' for c, v, w in partial_vowels.scan(folder)]
     # Hebrew spans traced to a source (copied by script, never typed)
     sys.path.insert(0, os.path.join(ROOT, 'scripts')); import source_check
     missing, far, _, _ = source_check.check(folder)
@@ -175,7 +179,7 @@ def main():
 
     bpath = os.path.join(ROOT, folder, 'review', 'check_baseline.json')
     base = json.load(open(bpath, encoding='utf-8')) if os.path.exists(bpath) else {}
-    accept_kinds = ('vowels', 'misprints', 'house rules + layout', 'Name in English', 'Hebrew sources')
+    accept_kinds = ('vowels', 'misprints', 'house rules + layout', 'Name in English', 'Partly pointed', 'Hebrew sources')
     new_total = 0
     print(f'check_all {folder} ({mpath})')
     for k, v in res.items():
