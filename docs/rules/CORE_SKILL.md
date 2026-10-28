@@ -33,7 +33,7 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 - The verse band follows the commentator's reading, word for word where he comments on a word (check the next and previous verse's comments too); his preferred reading, else the first; awkward English gets [square brackets], not a standard rendering. Ibn Ezra quoting a verse uses that verse's translation.
 - Check against Strickman–Silver but never name Strickman, Silver, Weiser, Krinsky or "Sefaria's English edition" in the notes. No "Uncertain" labels and no hedges: state the likeliest reading; doubts go to the Editorial record or a review row.
 - הַשֵּׁם is always Hashem in small caps (H{sci}ashem{/sci}), never "the Name"/"the Lord". The Name in Hebrew inside the English is ה׳, never ד' (the Hebrew commentary keeps Sefaria's ד'). Where the verse's Name is read Elohim (Lech Lecha 15:2, 15:8), the verse band says Elohim — flag new cases as review rows.
-- Place names are transliterated (Sephardi; Ur Kasdim, Mitzrayim, Chevron…; the list is in translation.md); names of people and peoples stay; every parasha's review list has a Place names row.
+- Place names are transliterated (Sephardi; Ur Kasdim, Mitzrayim, Chevron, Yerushalayim…; the list is in translation.md); names of people and peoples stay; every parasha's review list has a Place names row.
 - Letters in the English are the letters themselves ({h}א{/h}); vowels by name with the sign on an alef: kamatz (אָ); dagesh in בּ, mappik in הּ; root types with the letters ({h}פ״א{/h}).
 - A word Ibn Ezra defines himself gets no English gloss of ours; never a guessed identification (stone, plant, animal).
 - Sephardi transliteration throughout (Shabbat, Bereshit, toledot).
@@ -43,7 +43,7 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 
 ## Hebrew (hebrew.md)
 - Never retype Hebrew from memory; substitute inside existing strings; match by consonants. Show David pointed Hebrew, no transliteration.
-- The letters of the Hebrew commentary are Sefaria's, letter for letter (consonant_check must print differences: 0; fix_letters.py moves vowels onto Ibn Ezra's ו/י). Lemmas and Scripture quotations take the Masorah's vowels (MAM); words Sefaria already points keep Sefaria's marks; abbreviations, ד', letter names, book names and numbers stay unpointed.
+- The letters of the Hebrew commentary are Sefaria's, letter for letter (consonant_check must print differences: 0; fix_letters.py moves vowels onto Ibn Ezra's ו/י). Lemmas and Scripture quotations take the Masorah's vowels (MAM). Every word is pointed in full: Sefaria's own marks are a guide, checked and completed or corrected (check_all "Partly pointed"). Abbreviations, ד', letter names, book names and numbers stay unpointed — except פי', which is written out (פֵּירוּשׁ, or פֵּירֵשׁ / לְפָרֵשׁ where the English reads a verb), the one allowed difference from Sefaria's letters (David, 28 Oct 2026).
 - Ketiv/qere in the verse band: written form unpointed, then the reading pointed in [ ].
 - Hebrew in the English commentary and notes is copied by script, never typed (David, 28 Oct 2026): Scripture as `{q:Book ch:v:i-j}` (src/tanakh.json, all 39 books), Onkelos as `{o:i-j}`, resolved by work/assemble.py; check_all's "Hebrew sources" traces every span to its source. A made-up grammar example gives way to an attested form with its verse, unless the note calls it hypothetical.
 - Misprint: (printed) [correction], the correction pointed, the English follows it, and a {i}Text.{/i} line in the note of the same verse. A wrong reference: correction inside the round brackets: (תהלים קמח ה [קמח ח]). Variants and emendations are David's choice, never silent.
@@ -61,6 +61,7 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 - Explain rows with `python3 -I scripts/explain_rows.py <review> <IDs | --discuss>` (from the repo; no Google call) — explain-commentary-row.
 - Discuss rows: explain plainly, then ask with checkboxes in the same turn; save his chat answer to `<rows file>` → chat_answers.json ({id: {decision, note, date}}), which counts as his answer when applying (his chip in the doc is never changed). A rule David states once becomes standing only when saved here (see "A new rule from David").
 - Before each draft: `python3 -I scripts/check_all.py <folder>` — read every NEW hit, then `--accept`. Also read the front matter when a rule changes.
+- Bereshit's model changes only through `bereshit/work/changes.py` (`C(row, sec, (ch, v), old, new)`), rebuilt by `python3 -I bereshit/work/build_model.py`; never edit model_final5.json by hand. Other parashot change in work/chN.py (review_round/subs.py), then work/assemble.py.
 
 ## Page look (page.md)
 - Seforno-volume template: verse band (Hebrew 19.6/28 px, English on the same first line, פ/ס marks, new paragraph at a chapter), Hebrew commentary, English commentary, two-column notes (no chapter numbers), foot strip of very simple definitions.
