@@ -14,6 +14,7 @@ The other series skills point here instead of repeating these rules. This file i
 | docs/rules/hebrew.md | pointing, letters against Sefaria, ketiv/qere, misprints and reference corrections |
 | docs/rules/notes.md | writing notes: Onkelos, Rashi, Radak, Rashbam, Ramban, grammar notes, Sefaria remarks |
 | docs/rules/review.md | making, reading or applying a review list; the checks before a draft |
+| docs/rules/review_doc.md | building or changing a review Google Doc by hand, archiving one |
 | docs/rules/page.md | layout, page numbers, front matter, foot strip, title pages |
 | docs/rules/sources.md | accounts, Sefaria endpoints, reading review docs, deliverables |
 
@@ -44,6 +45,7 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 - Never retype Hebrew from memory; substitute inside existing strings; match by consonants. Show David pointed Hebrew, no transliteration.
 - The letters of the Hebrew commentary are Sefaria's, letter for letter (consonant_check must print differences: 0; fix_letters.py moves vowels onto Ibn Ezra's ו/י). Lemmas and Scripture quotations take the Masorah's vowels (MAM); words Sefaria already points keep Sefaria's marks; abbreviations, ד', letter names, book names and numbers stay unpointed.
 - Ketiv/qere in the verse band: written form unpointed, then the reading pointed in [ ].
+- Hebrew in the English commentary and notes is copied by script, never typed (David, 28 Oct 2026): Scripture as `{q:Book ch:v:i-j}` (src/tanakh.json, all 39 books), Onkelos as `{o:i-j}`, resolved by work/assemble.py; check_all's "Hebrew sources" traces every span to its source. A made-up grammar example gives way to an attested form with its verse, unless the note calls it hypothetical.
 - Misprint: (printed) [correction], the correction pointed, the English follows it, and a {i}Text.{/i} line in the note of the same verse. A wrong reference: correction inside the round brackets: (תהלים קמח ה [קמח ח]). Variants and emendations are David's choice, never silent.
 
 ## Notes (notes.md)
@@ -55,7 +57,7 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 ## Review (review.md)
 - When David asks to add or change something, it becomes a review row; no new draft unless he asks for one, says to apply answered rows, asks for a layout fix, or says yes to applying now when asked with checkboxes.
 - One review doc per parasha (Google Doc in davross846, Decision chips, Explanations tab, Sefaria column with a one-word link); archive it when applied. Only answered rows are applied; read the list's own "How to use" for what Approve/Keep mean; never overwrite David's Decision or note.
-- Read answers with `read_answers()` (scripts/workbench/wb.py, in the Composio workbench), never by loading the whole doc into the conversation.
+- Read answers with `read_answers()` or `review_status()` (scripts/workbench/wb.py, in the Composio workbench), never by loading the whole doc into the conversation.
 - Explain rows with `python3 -I scripts/explain_rows.py <review> <IDs | --discuss>` (from the repo; no Google call) — explain-commentary-row.
 - Discuss rows: explain plainly, then ask with checkboxes in the same turn; save his chat answer to `<rows file>` → chat_answers.json ({id: {decision, note, date}}), which counts as his answer when applying (his chip in the doc is never changed). A rule David states once becomes standing only when saved here (see "A new rule from David").
 - Before each draft: `python3 -I scripts/check_all.py <folder>` — read every NEW hit, then `--accept`. Also read the front matter when a rule changes.
@@ -69,4 +71,4 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 ## Sources and delivery (sources.md)
 - Google files only in davross846@gmail.com (Composio googledocs_spinet-dirk, googledrive_pulse-dwang); never filmgoingpro. GitHub through Composio: default account.
 - Sefaria through the Sefaria MCP tool (endpoints in sources.md); Rashi, Talmud and Midrash comparisons checked there.
-- Drafts: "<Commentator> <Parasha> - draft N.pdf" / "- final.pdf", sent with SendUserFile with page count and what changed. When final: export_parts.py, the Key Insights booklet, publish_pdfs.py, then refresh the Drive folder with `refresh_drive()` (wb.py).
+- Drafts: "<Commentator> <Parasha> - draft N.pdf" / "- final.pdf", sent with SendUserFile with page count and what changed. Making a parasha final is one chain: finalize-parasha (export, booklet, full book, Drive folder, archiving).
