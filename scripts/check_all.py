@@ -11,6 +11,8 @@ misprint scan, the house-rule and layout report (check_book), and these, which w
   - every (printed) [correction] in the Hebrew commentary has a {i}Text.{/i} line in a note on that verse
   - every Onkelos entry (work/onkelos.py) is in the model, with the Aramaic as copied from onkelos.json
   - the Name inside the English is ה׳, not ד'
+  - every Hebrew span in the comments and notes comes from a source (scripts/source_check.py): "not found"
+    and "only far from the verse" hits are read like vowel hits; no {q:}/{o:} marker is left unresolved
   - page numbers: book.json continuous, parasha.json first_page = book.json, last build (build/rep.json)
     = book.json, and the build is newer than the model
 Hits already read and judged are kept in <folder>/review/check_baseline.json (written by --accept) and
@@ -71,7 +73,15 @@ def plain(t):
 
 
 def own_checks(folder, M):
-    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'pages': []}
+    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Hebrew sources': [], 'markers': [], 'pages': []}
+    # Hebrew spans traced to a source (copied by script, never typed)
+    sys.path.insert(0, os.path.join(ROOT, 'scripts')); import source_check
+    missing, far, _, _ = source_check.check(folder)
+    out['Hebrew sources'] = ['not found: ' + x for x in missing] + ['far: ' + x for x in far]
+    for sec in ('ec', 'notes'):
+        for b in M[sec]:
+            if re.search(r'\{[oq]:', b.get('text', '')):
+                out['markers'].append(f"{sec} {b['ch']}:{b['v']}: unresolved marker (run work/assemble.py)")
     # (printed) [correction] -> Text line in a note of the same verse
     notes = {}
     for b in M['notes']:
@@ -165,7 +175,7 @@ def main():
 
     bpath = os.path.join(ROOT, folder, 'review', 'check_baseline.json')
     base = json.load(open(bpath, encoding='utf-8')) if os.path.exists(bpath) else {}
-    accept_kinds = ('vowels', 'misprints', 'house rules + layout', 'Name in English')
+    accept_kinds = ('vowels', 'misprints', 'house rules + layout', 'Name in English', 'Hebrew sources')
     new_total = 0
     print(f'check_all {folder} ({mpath})')
     for k, v in res.items():

@@ -8,6 +8,15 @@ Each parasha has work/onkelos.py with entries:
 In the text, {o:i-j} (or {o:i}) prints words i..j of Onkelos on that verse, copied from src/onkelos.json
 (Sefaria, "Targum Onkelos, vocalized according to the Yemenite Taj", CC-BY-SA); {o:ch:v:i-j} another verse.
 The Name, written יְיָ in the Targum, prints as ה׳, as the Name is shown everywhere in the English.
+
+Scripture quotations (David, 28 Oct 2026: Hebrew in the notes is copied by script from Chayei Sarah on):
+{q:Book ch:v:i-j} (or {q:Book ch:v:i}) prints words i..j of that verse from src/tanakh.json (Miqra according
+to the Masorah, Sefaria), with the Masorah's vowels and dagesh, without cantillation or meteg; a maqaf-joined
+group counts as one word and keeps its maqaf. A ketiv/qere is one word and prints the qere. The Name (יְהֹוָה,
+with or without a prefix) prints as ה׳; a Name read Elohim (יֱהֹוִה) stops the build: ask David.
+Book names as in src/tanakh.json ("Genesis", "I Samuel", "Song of Songs"). Words are counted as in
+`python3 -I scripts/onk_lib.py words "Isaiah 1:1"`, which prints the verse numbered word by word.
+resolve_all(text, ref) resolves both kinds of marker; assemble.py runs it on every comment and note.
 """
 import json, re, importlib.util
 
@@ -86,3 +95,78 @@ def apply(N, entries_path, onk_path):
                 if r: tgt = r[0]
             N[tgt][1] = insert_line(N[tgt][1], line, b); log.append((ref, 'A'))
     return [(tuple(k), t) for k, t in N], log
+
+
+# ---------------------------------------------------------------- {q:} Scripture quotations
+_TANAKH = None
+_CANT = re.compile('[\u0591-\u05af\u05bd\u034f]')      # cantillation, meteg, grapheme joiner
+
+
+def tanakh():
+    global _TANAKH
+    if _TANAKH is None:
+        import os
+        p = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src', 'tanakh.json')
+        _TANAKH = json.load(open(p, encoding='utf-8'))
+    return _TANAKH
+
+
+def verse_words(book, ch, v):
+    T = tanakh()
+    if book not in T: raise SystemExit(f'{{q:}} unknown book {book!r} (names as in src/tanakh.json)')
+    try: t = T[book][ch - 1][v - 1]
+    except IndexError: raise SystemExit(f'{{q:}} no verse {book} {ch}:{v}')
+    t = re.sub(r'&[a-z]+;|\{[פס]\}', ' ', t)
+    t = re.sub(r'\(([^()]*)\)\s*\[([^\]]*)\]', lambda m: m.group(2), t)     # ketiv/qere: the qere
+    t = _CANT.sub('', t).replace('׀', ' ').replace('׃', '')
+    return t.split()
+
+
+def _name(w):
+    bare = re.sub('[\u05b0-\u05c7]', '', w)
+    m = re.fullmatch('([ובלמשכה]*)יהוה', bare)
+    if not m: return w
+    if 'ֱ' in w and w.endswith('ִה'):
+        raise SystemExit(f'{{q:}} quotes the Name read Elohim ({w}); ask David how to print it')
+    k = 0; n = len(m.group(1))
+    while n:                                                   # keep the prefix letters with their vowels
+        if '\u05d0' <= w[k] <= '\u05ea': n -= 1
+        k += 1
+        while k < len(w) and not ('\u05d0' <= w[k] <= '\u05ea'): k += 1
+    return w[:k] + 'ה׳'
+
+
+def resolve_q(text):
+    def rep(m):
+        book, ch, v, i, j = m.group(1), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5) or m.group(4))
+        w = verse_words(book, ch, v)
+        if not (1 <= i <= j <= len(w)): raise SystemExit(f'{m.group(0)}: the verse has {len(w)} words')
+        return '{h}' + ' '.join(_name(x) for x in w[i - 1:j]) + '{/h}'
+    return re.sub(r'\{q:([^{}:]+?) (\d+):(\d+):(\d+)(?:-(\d+))?\}', rep, text)
+
+
+_ONK = None
+
+
+def resolve_all(text, ref):
+    """Both markers in one comment or note: {q:…} from the Tanakh, {o:…} from Onkelos (all */src/onkelos.json)."""
+    global _ONK
+    if '{q:' in text: text = resolve_q(text)
+    if '{o:' in text:
+        if _ONK is None:
+            import glob, os
+            _ONK = {}
+            for f in glob.glob(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '*', 'src', 'onkelos.json')):
+                _ONK.update(json.load(open(f, encoding='utf-8'))['text'])
+        text = resolve(text, ref, _ONK)
+    if re.search(r'\{[oq]:', text): raise SystemExit(f'{ref}: a marker was not resolved: {text[:80]}')
+    return text
+
+
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv) == 3 and sys.argv[1] == 'words':
+        m = re.fullmatch(r'(.+) (\d+):(\d+)', sys.argv[2])
+        for k, w in enumerate(verse_words(m.group(1), int(m.group(2)), int(m.group(3))), 1): print(k, w)
+    else:
+        print(__doc__)
