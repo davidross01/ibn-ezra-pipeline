@@ -239,21 +239,21 @@ def drive_plan(tree=None):
     """{folder prefix: [(drive name, repo path, match prefix or None)]} from book.json and the repo tree."""
     tree = tree or gh_tree()
     book = gh_json('book.json')
-    plan = {'01': [], '02': [], '03': [], '04': [], '05': []}
-    full = sorted(p for p in tree if p.startswith('book/') and p.endswith('.pdf'))
-    plan['01'] = [(p.split('/')[-1], p, 'Ibn Ezra on the Torah - Bereshit to') for p in full[-1:]]
+    # The full book is not kept on Drive (David, 29 Oct 2026: over the 5 MB upload limit); readers use the
+    # front matter plus the parasha files, which are numbered in Torah order ("01 Bereshit.pdf") so Drive lists them in order.
+    plan = {'02': [], '03': [], '04': [], '05': []}
     plan['02'] = [('Ibn Ezra on the Torah - Front Matter.pdf', 'front/Ibn Ezra on the Torah - Front Matter.pdf', None)]
-    for e in book['parashot']:
+    for i, e in enumerate(book['parashot'], 1):
         P, folder = e['parasha'], e['folder']
         final = str(e.get('status', '')).startswith('final')
         ins = f'insights/Ibn Ezra on Parashat {P} - Key Insights.pdf'
         if ins in tree:
-            plan['04'].append((ins.split('/')[-1], ins, None))
+            plan['04'].append((f'{i:02d} {P} - Key Insights.pdf', ins, ins.split('/')[-1]))
         if final:
             src = f'{folder}/Ibn Ezra on Parashat {P}.pdf'
             if src not in tree:
                 src = f'{folder}/drafts/Ibn Ezra {P} - final.pdf'
-            plan['03'].append((f'Ibn Ezra on Parashat {P}.pdf', src, None))
+            plan['03'].append((f'{i:02d} {P}.pdf', src, f'Ibn Ezra on Parashat {P}.pdf'))
         else:
             drafts = [p for p in tree if p.startswith(f'{folder}/drafts/Ibn Ezra {P} - draft ') and p.endswith('.pdf')]
             if drafts:
@@ -279,6 +279,7 @@ def refresh_drive(dry=False):
         used = set()
         for name, path, prefix in items:
             hit = [f for f in files if f['name'] == name] or ([f for f in files if prefix and f['name'].startswith(prefix)] if prefix else [])
+            # an older name (prefix) is renamed in place, so the file keeps its link
             data = gh_bytes(path)
             if len(data) > 5 * 1024 * 1024:
                 log.append(f'!! {name}: {len(data)//1024} KB, over the 5 MB upload limit'); continue
@@ -308,6 +309,22 @@ def refresh_drive(dry=False):
                 log.append(f'{pre} trashed (parasha now final): {f["name"]}')
             else:
                 log.append(f'{pre} left alone (not in the plan): {f["name"]}')
+    # the full book is no longer kept on Drive: trash any copy, then the empty "01 Full book" folder
+    if '01' in subs:
+        left = []
+        for f in _drive_ls(subs['01']):
+            if f['name'].startswith('Ibn Ezra on the Torah - Bereshit to'):
+                if not dry:
+                    _run('GOOGLEDRIVE_TRASH_FILE', {'file_id': f['id']}, account=DRIVE)
+                log.append(f'01 trashed (full book not kept on Drive): {f["name"]}')
+            else:
+                left.append(f['name'])
+        if left:
+            log.append(f'01 left alone (not in the plan): {", ".join(left)}')
+        else:
+            if not dry:
+                _run('GOOGLEDRIVE_TRASH_FILE', {'file_id': subs['01']}, account=DRIVE)
+            log.append('01 folder trashed (empty)')
     # verify
     bad = []
     if not dry:

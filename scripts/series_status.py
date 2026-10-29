@@ -142,6 +142,10 @@ def main():
                              'link': f"https://docs.google.com/{"spreadsheets" if d.get("kind")=="Google Sheet" else "document"}/d/{d["id"]}/edit",
                              'answers': answers_of(d)}
                             for d in reg if d['parasha'] not in names and d['status'] in ('open', 'answered')]
+    # applied but not yet archived: listed so a new session need not read review_docs.json (archive only when David says)
+    rep['unarchived'] = [{'parasha': d['parasha'], 'title': d.get('title'), 'applied': d.get('applied'),
+                          'link': f"https://docs.google.com/{'spreadsheets' if d.get('kind')=='Google Sheet' else 'document'}/d/{d['id']}/edit" if d.get('id') else None}
+                         for d in reg if d['status'] == 'applied']
     last = book['parashot'][-1]['parasha']
     nxt = TORAH[TORAH.index(last) + 1] if last in TORAH and TORAH.index(last) + 1 < len(TORAH) else None
     rep['next'] = {'parasha': nxt, 'first_page': book.get('next_first_page')}
@@ -167,6 +171,8 @@ def main():
             acts.append((3, f"Waiting on David: {d.get('title') or who} — {a['open']} of {a['total']} rows open {d['link']}"))
         elif not a:
             acts.append((3, f"Read the answers of {d.get('title') or who} (review_status() in the workbench) {d['link']}"))
+    for d in rep['unarchived']:
+        acts.append((4, f"Ask David: archive {d['title']} (applied{', ' + d['applied'][:10] if d.get('applied') else ''}, not archived) {d['link']}"))
     lastp = book['parashot'][-1]
     if lastp['status'].lower().startswith('final') and rep['next']['parasha']:
         acts.append((4, f"Start {rep['next']['parasha']} at page {book.get('next_first_page')} (commentary-book-build)"))
@@ -203,6 +209,10 @@ def main():
         a = d.get('answers')
         ans = (f"{a['total'] - a['open']} of {a['total']} answered (read {a['read_at']})" if a else 'answers not read yet')
         print(f"  review OPEN: {d.get('title') or d['parasha']}: {ans} {d['link']}")
+    if rep['unarchived']:
+        print('\nReview docs applied, not archived (archive only when David says):')
+        for d in rep['unarchived']:
+            print(f"  {d['title']} {d['link']}")
     print(f"\nFull book: {', '.join(os.path.basename(x) for x in rep['book']['files']) or 'none'}")
     for w in rep['book']['warnings']:
         print(f'  ! {w}')
