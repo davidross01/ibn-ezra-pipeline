@@ -67,9 +67,11 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 - Seforno-volume template: verse band (Hebrew 19.6/28 px, English on the same first line, פ/ס marks, new paragraph at a chapter), Hebrew commentary, English commentary, two-column notes (no chapter numbers), foot strip of very simple definitions.
 - Comments go on the page of their verse; notes stay with it where they fit (NB = 100, STRETCH 0.15 — don't tighten); no overlap warnings in a draft that is sent.
 - One book, page numbers continuous from book.json; a page-count change means rebuilding every later parasha and its booklet. Front matter (i–x) once at the start; each parasha has its own title page and ends פ פ פ.
+- One Chromium version per parasha (book.json "chromium"; check_all fails on a mismatch): rebuild an older parasha only where its version is installed.
 - Licensing and print set-up not decided: don't change credits, trim, margins or font embedding.
 
 ## Sources and delivery (sources.md)
 - Google files only in davross846@gmail.com (Composio googledocs_spinet-dirk, googledrive_pulse-dwang); never filmgoingpro. GitHub through Composio: default account.
 - Sefaria through the Sefaria MCP tool (endpoints in sources.md); Rashi, Talmud and Midrash comparisons checked there.
 - Drafts: "<Commentator> <Parasha> - draft N.pdf" / "- final.pdf", sent with SendUserFile with page count and what changed. Making a parasha final is one chain: finalize-parasha (export, booklet, full book, Drive folder, archiving).
+- Drive: no full book (over the 5 MB limit; it stays in GitHub); parasha files and booklets numbered in Torah order, "01 Bereshit.pdf", "01 Bereshit - Key Insights.pdf" (refresh_drive does it).

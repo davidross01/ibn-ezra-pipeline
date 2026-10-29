@@ -134,6 +134,13 @@ def own_checks(folder, M):
         r = json.load(open(rep, encoding='utf-8'))
         if (r.get('first_page'), r.get('last_page')) != (me['first_page'], me['last_page']):
             out['pages'].append(f"last build is pages {r.get('first_page')}–{r.get('last_page')}, book.json {me['first_page']}–{me['last_page']}")
+        want = str(me.get('chromium') or '')
+        have = str(r.get('browser') or '').split('.')[0]
+        if want and not have:
+            out['pages'].append('the build does not record its Chromium version: rebuild with the current make_pdf.py')
+        elif want and have != want:
+            out['pages'].append(f"built with Chromium {have}, but {me['parasha']} was laid out with {want} (book.json): "
+                                f"page breaks can move; rebuild where Chromium {want} is installed, or ask David before re-paginating")
         if os.path.getmtime(rep) < os.path.getmtime(os.path.join(ROOT, folder, MODEL.get(folder, 'data/model.json'))):
             out['pages'].append('the model is newer than the last build: rebuild before trusting the layout checks')
     else:
