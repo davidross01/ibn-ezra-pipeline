@@ -78,7 +78,8 @@ def main():
     for p in book['parashot']:
         name, f = p['parasha'], p['folder']
         final = p['status'].lower().startswith('final')
-        data_t = ctime(f'{f}/data', f'{f}/work')
+        # bereshit/data/front.json is the front matter's source, not Bereshit's pages (it has its own check below)
+        data_t = ctime(f'{f}/data', f'{f}/work', ':(exclude)bereshit/data/front.json')
         drafts = sorted(glob.glob(f'{f}/drafts/*.pdf'), key=draft_key)
         latest = drafts[-1] if drafts else None
         lat_t = ctime(latest)
