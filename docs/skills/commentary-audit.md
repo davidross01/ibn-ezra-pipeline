@@ -31,7 +31,7 @@ Use when David asks to check, audit or bring up to date work already done ("go t
 - `read_answers(<id>)` → `<part>_answers.json`. Discuss rows: explain, ask with checkboxes, save the answer to chat_answers.json.
 - Approved rows: their `ops` from the rows file — Bereshit as C entries (row id as `row`) in a GENERATED block; other parashot in their work files. Book-wide rows (a word changed everywhere, how Hashem prints) need their own script over every parasha, the front matter and the booklets.
 - Each verse whose idea paragraph is done (or judged not needed, with the reason) goes into `<folder>/review/ideas.json`; `--accept` never hides an Ideas hit, so the list is the audit's to-do. The applying script for an audit is `review_audit/apply_<part>.py` (model: `apply_ber1.py`): it reads the rows' ops and the answers (chat answers override the chip), makes David's Change notes on the row's own text, and logs `<part>_applied.json`; set the registry status to applied.
-- Archive the doc when applied (finalize-parasha step 9; docs/rules/review_doc.md).
+- Archive the doc only when David says (docs/rules/review_doc.md); until then the registry says "applied".
 
 ## At the end of the audit
 Rebuild every parasha once with Chromium 153, set book.json pages and "chromium", renumber; check_all clean for each; then finalize-parasha (front matter, parts export, booklets with the wording in insights/davar.py, full book, Drive). Update README History and docs/HANDOFF.md.
