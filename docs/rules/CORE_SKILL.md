@@ -52,6 +52,7 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 - Onkelos is a main commentator on par with Rashi (commentary-onkelos-notes skill): Aramaic copied by script ({o:i-j}), English ours, יְיָ prints ה׳.
 - Rashi throughout; Radak where he discusses or notably explains Ibn Ezra; Rashbam wherever useful (only where his text survives on Sefaria); Ramban only where he quotes or adds to Ibn Ezra's view. Keep the preface's list of commentators true.
 - Grammar notes explain the point: plain point → "A reader might think …" → proof and why it matters; add to notes, never take away.
+- Ideas (David, 30 Oct 2026): wherever Ibn Ezra discusses an idea (God's knowledge, creation, angels, the soul, prophecy, the image of God), his science (spheres, astrology) or a “secret”, the note gives one full paragraph (120–200 words): the idea explained in detail, why he brings it here, what a reader would otherwise think. A hint is explained with its source named (his own comment elsewhere, Avi Ezer; never Krinsky's Mechokekei Yehudah), read on Sefaria first. check_all “Ideas” lists the places; review/ideas.json records the verses done.
 - A note never mentions the review list, "not checked", "agrees with Sefaria", "checked on Sefaria" or headword remarks; a Text line only when something differs. No per-section source lines. Run review_grammar/all/clean.py --check before each draft.
 
 ## Review (review.md)

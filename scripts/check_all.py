@@ -74,10 +74,13 @@ def plain(t):
 
 
 def own_checks(folder, M):
-    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'markers': [], 'pages': []}
+    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'Ideas': [], 'markers': [], 'pages': []}
     # every word pointed in full (Vowels Review 1, E1)
     sys.path.insert(0, os.path.join(ROOT, 'scripts')); import partial_vowels
     out['Partly pointed'] = [f'{c}:{v} {w}' for c, v, w in partial_vowels.scan(folder)]
+    # Ibn Ezra's ideas get a full paragraph (notes.md, 30 Oct 2026): comments touching an idea, not yet in review/ideas.json
+    import ideas_scan
+    out['Ideas'] = [f'{c}:{v} ({", ".join(k)})' for c, v, k in ideas_scan.scan(folder)]
     # Hebrew spans traced to a source (copied by script, never typed)
     sys.path.insert(0, os.path.join(ROOT, 'scripts')); import source_check
     missing, far, _, _ = source_check.check(folder)
@@ -186,7 +189,7 @@ def main():
 
     bpath = os.path.join(ROOT, folder, 'review', 'check_baseline.json')
     base = json.load(open(bpath, encoding='utf-8')) if os.path.exists(bpath) else {}
-    accept_kinds = ('vowels', 'misprints', 'house rules + layout', 'Name in English', 'Partly pointed', 'Hebrew sources')
+    accept_kinds = ('vowels', 'misprints', 'house rules + layout', 'Name in English', 'Partly pointed', 'Hebrew sources', 'Ideas')
     new_total = 0
     print(f'check_all {folder} ({mpath})')
     for k, v in res.items():
