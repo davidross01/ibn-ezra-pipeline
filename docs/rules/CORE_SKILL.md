@@ -62,6 +62,7 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 - Explain rows with `python3 -I scripts/explain_rows.py <review> <IDs | --discuss>` (from the repo; no Google call) — explain-commentary-row.
 - Discuss rows: explain plainly, then ask with checkboxes in the same turn; save his chat answer to `<rows file>` → chat_answers.json ({id: {decision, note, date}}), which counts as his answer when applying (his chip in the doc is never changed). A rule David states once becomes standing only when saved here (see "A new rule from David").
 - Before each draft: `python3 -I scripts/check_all.py <folder>` — read every NEW hit, then `--accept`. Also read the front matter when a rule changes.
+- Bringing a parasha already written up to the current rules: the commentary-audit skill (rule fixes applied with a log, judgment calls as a review doc, Parts A–F; renumber once at the end).
 - Bereshit's model changes only through `bereshit/work/changes.py` (`C(row, sec, (ch, v), old, new)`), rebuilt by `python3 -I bereshit/work/build_model.py`; never edit model_final5.json by hand. Other parashot change in work/chN.py (review_round/subs.py), then work/assemble.py.
 
 ## Page look (page.md)
