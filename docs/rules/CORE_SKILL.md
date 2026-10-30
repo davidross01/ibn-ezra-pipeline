@@ -12,7 +12,7 @@ The other series skills point here instead of repeating these rules. This file i
 | docs/rules/translation.md | translating, writing the verse band, Hashem/Elohim, place names, letters and vowels in the English, glosses |
 | docs/rules/grammar.md | any grammar term: David's glossary (Hebrew → English), the grammar sheet, terms_audit |
 | docs/rules/hebrew.md | pointing, letters against Sefaria, ketiv/qere, misprints and reference corrections |
-| docs/rules/notes.md | writing notes: Onkelos, Rashi, Radak, Rashbam, Ramban, grammar notes, Sefaria remarks |
+| docs/rules/notes.md | writing notes: Onkelos, Rashi, Radak, Rashbam, Ramban, grammar notes, Ibn Ezra's ideas, Sefaria remarks |
 | docs/rules/review.md | making, reading or applying a review list; the checks before a draft |
 | docs/rules/review_doc.md | building or changing a review Google Doc by hand, archiving one |
 | docs/rules/page.md | layout, page numbers, front matter, foot strip, title pages |
