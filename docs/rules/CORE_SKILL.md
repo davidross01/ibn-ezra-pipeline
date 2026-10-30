@@ -59,6 +59,7 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 ## Review (review.md)
 - When David asks to add or change something, it becomes a review row; no new draft unless he asks for one, says to apply answered rows, asks for a layout fix, or says yes to applying now when asked with checkboxes.
 - One review doc per parasha (Google Doc in davross846, Decision chips, Explanations tab, Sefaria column with a one-word link); archive it when applied and David says. Only answered rows are applied; read the list's own "How to use" for what Approve/Keep mean; never overwrite David's Decision or note.
+- Every review list has an **Ideas Part**: one row per idea paragraph (Ibn Ezra's ideas, science, hints), with its sources named, Keep / Approve — in a new parasha's draft-1 list as in an audit (Audit 2 Part F is the model).
 - Read answers with `read_answers()` or `review_status()` (scripts/workbench/wb.py, in the Composio workbench), never by loading the whole doc into the conversation.
 - Explain rows with `python3 -I scripts/explain_rows.py <review> <IDs | --discuss>` (from the repo; no Google call) — explain-commentary-row.
 - Discuss rows: explain plainly, then ask with checkboxes in the same turn; save his chat answer to `<rows file>` → chat_answers.json ({id: {decision, note, date}}), which counts as his answer when applying (his chip in the doc is never changed). A rule David states once becomes standing only when saved here (see "A new rule from David").
