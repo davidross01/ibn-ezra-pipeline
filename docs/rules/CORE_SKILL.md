@@ -32,7 +32,7 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 - The translation is David's own; never present another translation's wording as his. Literal by default; explain obscure passages in the note.
 - The verse band follows the commentator's reading, word for word where he comments on a word (check the next and previous verse's comments too); his preferred reading, else the first; awkward English gets [square brackets], not a standard rendering. Ibn Ezra quoting a verse uses that verse's translation.
 - Check against Strickman–Silver but never name Strickman, Silver, Weiser, Krinsky or "Sefaria's English edition" in the notes. No "Uncertain" labels and no hedges: state the likeliest reading; doubts go to the Editorial record or a review row.
-- הַשֵּׁם is always Hashem in small caps (H{sci}ashem{/sci}), never "the Name"/"the Lord". The Name in Hebrew inside the English is ה׳, never ד' (the Hebrew commentary keeps Sefaria's ד'). Where the verse's Name is read Elohim (Lech Lecha 15:2, 15:8), the verse band says Elohim — flag new cases as review rows.
+- הַשֵּׁם is always Hashem in small caps (H{sci}ashem{/sci}), never "the Name"/"the Lord" — except "the secret of the Name" where Ibn Ezra means God's own name (Exodus 23:21; Audit 1 B2). The Name in Hebrew inside the English is ה׳, never ד' (the Hebrew commentary keeps Sefaria's ד'). Where the verse's Name is read Elohim (Lech Lecha 15:2, 15:8), the verse band says Elohim — flag new cases as review rows.
 - Place names are transliterated (Sephardi; Ur Kasdim, Mitzrayim, Chevron, Yerushalayim…; the list is in translation.md); names of people and peoples stay; every parasha's review list has a Place names row.
 - Letters in the English are the letters themselves ({h}א{/h}); vowels by name with the sign on an alef: kamatz (אָ); dagesh in בּ, mappik in הּ; root types with the letters ({h}פ״א{/h}).
 - A word Ibn Ezra defines himself gets no English gloss of ours; never a guessed identification (stone, plant, animal).
@@ -58,12 +58,12 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 
 ## Review (review.md)
 - When David asks to add or change something, it becomes a review row; no new draft unless he asks for one, says to apply answered rows, asks for a layout fix, or says yes to applying now when asked with checkboxes.
-- One review doc per parasha (Google Doc in davross846, Decision chips, Explanations tab, Sefaria column with a one-word link); archive it when applied. Only answered rows are applied; read the list's own "How to use" for what Approve/Keep mean; never overwrite David's Decision or note.
+- One review doc per parasha (Google Doc in davross846, Decision chips, Explanations tab, Sefaria column with a one-word link); archive it when applied and David says. Only answered rows are applied; read the list's own "How to use" for what Approve/Keep mean; never overwrite David's Decision or note.
 - Read answers with `read_answers()` or `review_status()` (scripts/workbench/wb.py, in the Composio workbench), never by loading the whole doc into the conversation.
 - Explain rows with `python3 -I scripts/explain_rows.py <review> <IDs | --discuss>` (from the repo; no Google call) — explain-commentary-row.
 - Discuss rows: explain plainly, then ask with checkboxes in the same turn; save his chat answer to `<rows file>` → chat_answers.json ({id: {decision, note, date}}), which counts as his answer when applying (his chip in the doc is never changed). A rule David states once becomes standing only when saved here (see "A new rule from David").
 - Before each draft: `python3 -I scripts/check_all.py <folder>` — read every NEW hit, then `--accept`. Also read the front matter when a rule changes.
-- Bringing a parasha already written up to the current rules: the commentary-audit skill (rule fixes applied with a log, judgment calls as a review doc, Parts A–F; renumber once at the end).
+- Bringing a parasha already written up to the current rules: the commentary-audit skill (rule fixes applied with a log, judgment calls as one detailed review doc per parasha, Parts A–F; renumber once at the end).
 - Bereshit's model changes only through `bereshit/work/changes.py` (`C(row, sec, (ch, v), old, new)`), rebuilt by `python3 -I bereshit/work/build_model.py`; never edit model_final5.json by hand. Other parashot change in work/chN.py (review_round/subs.py), then work/assemble.py.
 
 ## Page look (page.md)
