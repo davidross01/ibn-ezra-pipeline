@@ -16,6 +16,8 @@ misprint scan, the house-rule and layout report (check_book), and these, which w
     and "only far from the verse" hits are read like vowel hits; no {q:}/{o:} marker is left unresolved
   - page numbers: book.json continuous, parasha.json first_page = book.json, last build (build/rep.json)
     = book.json, and the build is newer than the model
+  - Ibn Ezra's ideas (scripts/ideas_scan.py): verses not yet in <folder>/review/ideas.json; --accept never
+    hides them, they stay listed until each is written up ("done") or judged "not needed: <why>"
 Hits already read and judged are kept in <folder>/review/check_baseline.json (written by --accept) and
 are counted, not listed, so a new problem stands out. Exit status 1 if anything new or failing.
 """
@@ -64,6 +66,9 @@ def hits_book(out):
         m = re.match(r'== (.+): \d+$', l)
         if m:
             sec = m.group(1); continue
+        if l.strip() and not l.startswith(' '):
+            sec = None                     # SUMMARY or any other heading ends the section (its counts are not hits)
+            continue
         if sec and l.startswith('   ') and l.strip():
             res.append(f'{sec} :: {l.strip()}')
     return res
@@ -207,7 +212,8 @@ def main():
             for x in v:
                 if x in known: print(f'      (read) {x[:200]}')
     if accept:
-        base = {k: res[k] for k in accept_kinds if k in res}
+        # Ideas are never remembered as read: a verse leaves the list only through <folder>/review/ideas.json
+        base = {k: res[k] for k in accept_kinds if k in res and k != 'Ideas'}
         os.makedirs(os.path.dirname(bpath), exist_ok=True)
         json.dump(base, open(bpath, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
         print(f'accepted: {sum(len(v) for v in base.values())} hits remembered as read -> {os.path.relpath(bpath, ROOT)}')

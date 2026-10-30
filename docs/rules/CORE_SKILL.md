@@ -36,6 +36,7 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 - Place names are transliterated (Sephardi; Ur Kasdim, Mitzrayim, Chevron, Yerushalayim…; the list is in translation.md); names of people and peoples stay; every parasha's review list has a Place names row.
 - Letters in the English are the letters themselves ({h}א{/h}); vowels by name with the sign on an alef: kamatz (אָ); dagesh in בּ, mappik in הּ; root types with the letters ({h}פ״א{/h}).
 - A word Ibn Ezra defines himself gets no English gloss of ours; never a guessed identification (stone, plant, animal).
+- Audit policy (Audit 1, 30 Oct 2026): brackets only where Ibn Ezra explains how a word of that verse works — no identifications, no book-wide word swaps, no readings carried over from another verse; translation rows only for mistranslations and inconsistencies, not smoothing; Hashem's print stays.
 - Sephardi transliteration throughout (Shabbat, Bereshit, toledot).
 
 ## Grammar (grammar.md)
@@ -53,6 +54,7 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 - Rashi throughout; Radak where he discusses or notably explains Ibn Ezra; Rashbam wherever useful (only where his text survives on Sefaria); Ramban only where he quotes or adds to Ibn Ezra's view. Keep the preface's list of commentators true.
 - Grammar notes explain the point: plain point → "A reader might think …" → proof and why it matters; add to notes, never take away.
 - Ideas (David, 30 Oct 2026): wherever Ibn Ezra discusses an idea (God's knowledge, creation, angels, the soul, prophecy, the image of God), his science (spheres, astrology) or a “secret”, the note gives one full paragraph (120–200 words): the idea explained in detail, why he brings it here, what a reader would otherwise think. A hint is explained with its source named (his own comment elsewhere, Avi Ezer; never Krinsky's Mechokekei Yehudah), read on Sefaria first. check_all “Ideas” lists the places; review/ideas.json records the verses done.
+- Idea notes (Audit 1 answers): full for real ideas (God, soul, prophecy, providence, creation, free will) — revising adds, never cuts; 3–4 sentences for background (spheres, three worlds); “why he brings it” only where the verse prompts it. Avi Ezer for every idea and hint and wherever it notably explains him; Rambam wherever he discusses the same idea; no Aristotle. All read on Sefaria, named.
 - A note never mentions the review list, "not checked", "agrees with Sefaria", "checked on Sefaria" or headword remarks; a Text line only when something differs. No per-section source lines. Run review_grammar/all/clean.py --check before each draft.
 
 ## Review (review.md)
