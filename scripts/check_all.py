@@ -5,6 +5,8 @@ Usage (repo root):
   python3 -I scripts/check_all.py <folder>            # e.g. vayera
   python3 -I scripts/check_all.py <folder> --accept   # after reading every NEW hit: remember them as read
   python3 -I scripts/check_all.py <folder> --full     # also list the hits already read
+  python3 -I scripts/check_all.py <folder> --ci       # GitHub Actions: no build there, so layout and pages are
+                                                      # skipped and Ideas (the audit's to-do) are listed, not failed
 
 Runs: letters against Sefaria (consonant_check), vowels of lemmas and quotations (vowel_check),
 misprint scan, the house-rule and layout report (check_book), and these, which were done by hand before:
@@ -161,7 +163,7 @@ def main():
     if not a:
         sys.exit(__doc__)
     folder = a[0].strip('/')
-    accept, full = '--accept' in sys.argv, '--full' in sys.argv
+    accept, full, ci = '--accept' in sys.argv, '--full' in sys.argv, '--ci' in sys.argv
     mpath = MODEL.get(folder, 'data/model.json')
     M = json.load(open(os.path.join(ROOT, folder, mpath), encoding='utf-8'))
     res, fail = {}, []
@@ -192,6 +194,11 @@ def main():
         elif v:
             fail.append(k)
 
+    if ci:      # the Actions runner has no build/: layout hits and the pages check need one
+        if 'house rules + layout' in res:
+            res['house rules + layout'] = [x for x in res['house rules + layout'] if not x.startswith('layout')]
+        res['pages'] = [x for x in res.get('pages', []) if not x.startswith(('no build', 'the build', 'the model is newer'))]
+        fail = [k for k in fail if k != 'pages' or res['pages']]
     bpath = os.path.join(ROOT, folder, 'review', 'check_baseline.json')
     base = json.load(open(bpath, encoding='utf-8')) if os.path.exists(bpath) else {}
     accept_kinds = ('vowels', 'misprints', 'house rules + layout', 'Name in English', 'Partly pointed', 'Hebrew sources', 'Ideas')
@@ -201,7 +208,7 @@ def main():
         known = set(base.get(k, [])) if k in accept_kinds else set()
         new = [x for x in v if x not in known]
         old = len(v) - len(new)
-        new_total += len(new) if k in accept_kinds else 0
+        new_total += len(new) if k in accept_kinds and not (ci and k == 'Ideas') else 0
         status = 'ok' if not new else f'{len(new)} NEW' if k in accept_kinds else f'{len(new)} FAIL'
         print(f'  {k:22} {status}' + (f'  ({old} already read)' if old else ''))
         for x in new[:60]:
