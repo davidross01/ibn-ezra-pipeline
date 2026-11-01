@@ -36,7 +36,7 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 - Place names are transliterated (Sephardi; Ur Kasdim, Mitzrayim, Chevron, Yerushalayim…; the list is in translation.md); names of people and peoples stay; every parasha's review list has a Place names row.
 - Letters in the English are the letters themselves ({h}א{/h}); vowels by name with the sign on an alef: kamatz (אָ); dagesh in בּ, mappik in הּ; root types with the letters ({h}פ״א{/h}).
 - A word Ibn Ezra defines himself gets no English gloss of ours; never a guessed identification (stone, plant, animal).
-- Audit policy (Audit 1, 30 Oct 2026): brackets only where Ibn Ezra explains how a word of that verse works — no identifications, no book-wide word swaps, no readings carried over from another verse; translation rows only for mistranslations and inconsistencies, not smoothing; Hashem's print stays.
+- Audit policy (Audit 1, 30 Oct 2026): brackets only where Ibn Ezra explains how a word of that verse works — no identifications, no book-wide word swaps, no readings carried over from another verse; translation rows only for mistranslations and inconsistencies, not smoothing; Hashem's print stays. Bracket rows only for clear cases — where the verse band contradicts his reading or hides it entirely (David, 1 Nov 2026).
 - Sephardi transliteration throughout (Shabbat, Bereshit, toledot).
 
 ## Grammar (grammar.md)

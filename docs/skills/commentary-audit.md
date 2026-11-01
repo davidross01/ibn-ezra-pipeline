@@ -13,7 +13,7 @@ Use when David asks to check, audit or bring up to date work already done ("go t
 - **Ibn Ezra's ideas** (his rule of 30 Oct): Part F, below.
 - **Nothing is rebuilt during the audit.** At the end every parasha is rebuilt once (Chromium 153), book.json "chromium" becomes 153 for all, and the pages are renumbered once.
 - **Order**: calibration on Bereshit 1 (Audit 1, applied 30 Oct), then **one doc per parasha, in great detail — "Don't escape anything"** (David, 30 Oct); Chayei Sarah waits.
-- **The policy from Audit 1** (confirmed 30 Oct; docs/rules/translation.md "How far the audit goes", notes.md "Idea notes: length and sources"): brackets only where Ibn Ezra explains how a word of *that* verse works — no identifications, no book-wide word swaps, no reading carried over from another verse; translation rows only for mistranslations and inconsistencies, not smoothing; how Hashem prints stays. A kind of row he answered Keep is not raised again; a kind he answered Approve is raised again as rows.
+- **The policy from Audit 1** (confirmed 30 Oct; docs/rules/translation.md "How far the audit goes", notes.md "Idea notes: length and sources"): brackets only where Ibn Ezra explains how a word of *that* verse works — no identifications, no book-wide word swaps, no reading carried over from another verse; translation rows only for mistranslations and inconsistencies, not smoothing; how Hashem prints stays. A kind of row he answered Keep is not raised again; a kind he answered Approve is raised again as rows. **Bracket rows only for clear cases** (1 Nov 2026, after Audit 2): where the verse band contradicts his reading or hides it entirely.
 
 ## Steps
 1. `git pull`; `python3 -I scripts/series_status.py`; read the checklist.
@@ -30,8 +30,9 @@ Use when David asks to check, audit or bring up to date work already done ("go t
 
 ## Applying the answers
 - `read_answers(<id>)` → `<part>_answers.json`. Discuss rows: explain, ask with checkboxes, save the answer to chat_answers.json.
-- The applying script is `review_audit/apply_<part>.py` (model: `apply_ber1.py`): it reads the rows' ops and the answers (chat answers override the chip), makes David's Change notes on the row's own text, writes Bereshit's C entries (row id as `row`) in a GENERATED block and other parashot's subs in their work files, and logs `<part>_applied.json`. Book-wide rows (a word changed everywhere, how Hashem prints) need their own script over every parasha, the front matter and the booklets.
+- The applying script is `python3 -I review_audit/apply_answers.py <part>` (one script for every part; a Change row stops it and is handled by hand): it reads the rows' ops and the answers (chat answers override the chip), makes David's Change notes on the row's own text, writes Bereshit's C entries (row id as `row`) in a GENERATED block and other parashot's subs in their work files, and logs `<part>_applied.json`. Book-wide rows (a word changed everywhere, how Hashem prints) need their own script over every parasha, the front matter and the booklets.
 - Each verse whose idea paragraph is done (or judged not needed, with the reason) goes into `<folder>/review/ideas.json`; `--accept` never hides an Ideas hit, so the list is the audit's to-do.
+- A sentence that an Onkelos entry owns (bereshit/work/onkelos.py, A/S entries) is changed there, not in changes.py — check_all "Onkelos" fails otherwise.
 - Set the registry status to applied. Archive the doc only when David says (docs/rules/review_doc.md).
 
 ## At the end of the audit
