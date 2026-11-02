@@ -148,6 +148,52 @@ def resolve_q(text):
 _ONK = None
 
 
+# ---------------------------------------------------------------- {ie:} {iep:} {vow:} (Chayei Sarah on)
+def ie_words(hc_text):
+    """Ibn Ezra's pointed Hebrew on one verse as a word list: references and markup dropped, (printed) [correction] -> the correction."""
+    t = re.sub(r'\{s\}.*?\{/s\}', ' ', hc_text); t = re.sub(r'\{/?[a-z]+\}', '', t)
+    t = re.sub(r'\([^()\[\]]*\)\s*(?=\[)', '', t)
+    return [w.strip('.,:;"()[]\'') for w in t.split() if w.strip('.,:;"()[]\'')]
+
+
+def resolve_ie(t, hc):
+    """{ie:ch:v:i-j} = words i..j of Ibn Ezra's Hebrew on ch:v; {iep:ch:v:n} = the n-th printed form before a [correction]. hc: {(ch, v): text}."""
+    def rep(m):
+        c, v, i, j = int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4) or m.group(3))
+        w = ie_words(hc[(c, v)])
+        if not 1 <= i <= j <= len(w): raise SystemExit(f'{m.group(0)}: Ibn Ezra on {c}:{v} has {len(w)} words')
+        return '{h}' + ' '.join(w[i - 1:j]) + '{/h}'
+    t = re.sub(r'\{ie:(\d+):(\d+):(\d+)(?:-(\d+))?\}', rep, t)
+    def rep_p(m):
+        c, v, n = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        p = re.findall(r'\(([^()\[\]]*)\)\s*\[', hc[(c, v)])
+        if not 1 <= n <= len(p): raise SystemExit(f'{m.group(0)}: {len(p)} printed forms on {c}:{v}')
+        return '{h}' + p[n - 1].strip() + '{/h}'
+    return re.sub(r'\{iep:(\d+):(\d+):(\d+)\}', rep_p, t)
+
+
+VOW = {'patach': 0x5b7, 'kamatz': 0x5b8, 'segol': 0x5b6, 'tzere': 0x5b5, 'hirik': 0x5b4, 'holam': 0x5b9, 'kubutz': 0x5bb,
+       'sheva': 0x5b0, 'chataf patach': 0x5b2, 'chataf segol': 0x5b1, 'chataf kamatz': 0x5b3}
+
+
+def resolve_vow(t):
+    """{vow:segol} = the vowel sign on an alef, made from its code point (never typed)."""
+    def rep(m):
+        if m.group(1) not in VOW: raise SystemExit(f'unknown vowel {m.group(0)}')
+        return '{v}' + chr(0x5d0) + chr(VOW[m.group(1)]) + '{/v}'
+    return re.sub(r'\{vow:([a-z ]+)\}', rep, t)
+
+
+def fix_nest(t):
+    """{hb}{q:…}{/hb} resolves to {hb}{h}…{/h}{/hb}: make it one span."""
+    return t.replace('{hb}{h}', '{hb}').replace('{/h}{/hb}', '{/hb}')
+
+
+def resolve_every(t, ref, hc):
+    """Every marker of a comment or note: {ie:} {iep:} {vow:} {q:} {o:}, then the nest fix."""
+    return fix_nest(resolve_all(resolve_vow(resolve_ie(t, hc)), tuple(ref)))
+
+
 def resolve_all(text, ref):
     """Both markers in one comment or note: {q:…} from the Tanakh, {o:…} from Onkelos (all */src/onkelos.json)."""
     global _ONK

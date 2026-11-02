@@ -118,6 +118,8 @@ def own_checks(folder, M):
                 onk.update(json.load(open(p, encoding='utf-8'))['text'])
         for kind, ref, a, b in onk_lib.load(ent):
             want = onk_lib.resolve(a if kind == 'A' else b, ref, onk)
+            if re.search(r'\{(?:q|ie|iep|vow):', want):   # Chayei Sarah on: the other markers too
+                want = onk_lib.resolve_every(want, ref, {(h['ch'], h['v']): h['text'] for h in M['hc']})
             if not any(want in n for n in notes.get(ref, [])):
                 out['Onkelos'].append(f'{kind} {ref[0]}:{ref[1]} not in the model as written: {plain(want)[:90]}')
     # the Name in English Hebrew spans
