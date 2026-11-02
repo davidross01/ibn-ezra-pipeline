@@ -207,8 +207,11 @@ def main():
     new_total = 0
     print(f'check_all {folder} ({mpath})')
     for k, v in res.items():
-        known = set(base.get(k, [])) if k in accept_kinds else set()
-        new = [x for x in v if x not in known]
+        # a "far" Hebrew-sources hit names where the word was first found; that place moves whenever a source
+        # file is added (Chayei Sarah, 2 Nov 2026), so the same hit is matched without it
+        stable = lambda x: re.sub(r'  — only in .*$', '', x) if k == 'Hebrew sources' else x
+        known = {stable(x) for x in base.get(k, [])} if k in accept_kinds else set()
+        new = [x for x in v if stable(x) not in known]
         old = len(v) - len(new)
         new_total += len(new) if k in accept_kinds and not (ci and k == 'Ideas') else 0
         status = 'ok' if not new else f'{len(new)} NEW' if k in accept_kinds else f'{len(new)} FAIL'
