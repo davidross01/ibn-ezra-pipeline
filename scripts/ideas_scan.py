@@ -24,6 +24,15 @@ def scan(folder):
             hits.setdefault((x['ch'], x['v']), set()).update(ks)
     return [(c, v, sorted(k)) for (c, v), k in sorted(hits.items()) if f'{c}:{v}' not in done]
 
+def sources_todo(folder):
+    """Idea places (every key of ideas.json: done, kept or not needed) with no record yet in review/idea_sources.json
+    of what Ibn Ezra's own writings and Saadia's Emunot veDeot add (notes.md, David, 8 Nov 2026)."""
+    d = os.path.join(ROOT, folder, 'review')
+    ideas = json.load(open(os.path.join(d, 'ideas.json'), encoding='utf-8')) if os.path.exists(os.path.join(d, 'ideas.json')) else {}
+    src = json.load(open(os.path.join(d, 'idea_sources.json'), encoding='utf-8')) if os.path.exists(os.path.join(d, 'idea_sources.json')) else {}
+    key = lambda k: tuple(int(x) for x in k.split(':'))
+    return [k for k in sorted(ideas, key=key) if not (isinstance(src.get(k), dict) and src[k].get('ibn_ezra') and src[k].get('saadia'))]
+
 if __name__ == '__main__':
     out = scan(sys.argv[1])
     for c, v, k in out: print(f'{c}:{v}  {", ".join(k)}')

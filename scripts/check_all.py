@@ -81,13 +81,15 @@ def plain(t):
 
 
 def own_checks(folder, M):
-    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'Ideas': [], 'markers': [], 'pages': []}
+    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'Ideas': [], 'Idea sources': [], 'markers': [], 'pages': []}
     # every word pointed in full (Vowels Review 1, E1)
     sys.path.insert(0, os.path.join(ROOT, 'scripts')); import partial_vowels
     out['Partly pointed'] = [f'{c}:{v} {w}' for c, v, w in partial_vowels.scan(folder)]
     # Ibn Ezra's ideas get a full paragraph (notes.md, 30 Oct 2026): comments touching an idea, not yet in review/ideas.json
     import ideas_scan
     out['Ideas'] = [f'{c}:{v} ({", ".join(k)})' for c, v, k in ideas_scan.scan(folder)]
+    # each idea place: Ibn Ezra's own writings and Saadia's Emunot veDeot read and recorded (notes.md, David, 8 Nov 2026)
+    out['Idea sources'] = [f'{k}: not yet in review/idea_sources.json' for k in ideas_scan.sources_todo(folder)]
     # Hebrew spans traced to a source (copied by script, never typed)
     sys.path.insert(0, os.path.join(ROOT, 'scripts')); import source_check
     missing, far, _, _ = source_check.check(folder)
@@ -203,7 +205,7 @@ def main():
         fail = [k for k in fail if k != 'pages' or res['pages']]
     bpath = os.path.join(ROOT, folder, 'review', 'check_baseline.json')
     base = json.load(open(bpath, encoding='utf-8')) if os.path.exists(bpath) else {}
-    accept_kinds = ('vowels', 'misprints', 'house rules + layout', 'Name in English', 'Partly pointed', 'Hebrew sources', 'Ideas')
+    accept_kinds = ('vowels', 'misprints', 'house rules + layout', 'Name in English', 'Partly pointed', 'Hebrew sources', 'Ideas', 'Idea sources')
     new_total = 0
     print(f'check_all {folder} ({mpath})')
     for k, v in res.items():
@@ -213,7 +215,7 @@ def main():
         known = {stable(x) for x in base.get(k, [])} if k in accept_kinds else set()
         new = [x for x in v if stable(x) not in known]
         old = len(v) - len(new)
-        new_total += len(new) if k in accept_kinds and not (ci and k == 'Ideas') else 0
+        new_total += len(new) if k in accept_kinds and not (ci and k in ('Ideas', 'Idea sources')) else 0
         status = 'ok' if not new else f'{len(new)} NEW' if k in accept_kinds else f'{len(new)} FAIL'
         print(f'  {k:22} {status}' + (f'  ({old} already read)' if old else ''))
         for x in new[:60]:
@@ -225,7 +227,7 @@ def main():
                 if x in known: print(f'      (read) {x[:200]}')
     if accept:
         # Ideas are never remembered as read: a verse leaves the list only through <folder>/review/ideas.json
-        base = {k: res[k] for k in accept_kinds if k in res and k != 'Ideas'}
+        base = {k: res[k] for k in accept_kinds if k in res and k not in ('Ideas', 'Idea sources')}
         os.makedirs(os.path.dirname(bpath), exist_ok=True)
         json.dump(base, open(bpath, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
         print(f'accepted: {sum(len(v) for v in base.values())} hits remembered as read -> {os.path.relpath(bpath, ROOT)}')
