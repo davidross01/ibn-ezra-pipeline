@@ -264,12 +264,13 @@ class Builder:
         s.batch(s.fill(s.etab, je))
 
     # ---- add a Part to a doc David has already started answering (no rebuild, answers kept) ----
-    def append_part(s, doc_id, part, rows, before='What the check found clean', how_find=None, how_add=None):
+    def append_part(s, doc_id, part, rows, before='What the check found clean', how_find=None, how_add=None, before_expl=None):
         """part = [letter, heading, sentence, headers, widths]; rows as in listN_rows.json (all of that part).
         Inserts the heading, sentence and table on the main tab just before the paragraph `before`
         (or at the end), appends the matching Explanations section, fills chips (Unanswered), styles
         only the new tables and links the new rows both ways. Existing rows, chips and notes are not touched.
-        how_find/how_add: optionally insert how_add right after the text how_find in the How-to-use paragraph."""
+        how_find/how_add: optionally insert how_add right after the text how_find in the How-to-use paragraph.
+        before_expl: the Explanations heading to insert the new section before (to replace a Part in place, keeping order)."""
         s.id = doc_id; s.rows = rows
         letter, head, sent, hdr, w = part
         L = lambda t: len(t.encode('utf-16-le')) // 2
@@ -307,7 +308,13 @@ class Builder:
         s.batch(reqs)
 
         # Explanations: appended at the end of its tab
-        s.structure(s.etab, [('H2', head), ('table', (len(rows) + 1, 5))])
+        econ0 = s.body(s.etab)
+        PE = next((el['startIndex'] for el in econ0 if before_expl and 'paragraph' in el and ptext(el).strip() == before_expl), None)
+        if PE is None:
+            s.structure(s.etab, [('H2', head), ('table', (len(rows) + 1, 5))])
+        else:
+            s.batch([{'insertText': {'location': s.loc(PE, s.etab), 'text': head + '\n'}},
+                     {'insertTable': {'location': s.loc(PE + L(head), s.etab), 'rows': len(rows) + 1, 'columns': 5}}])
         econ = s.body(s.etab)
         hp = [el for el in econ if 'paragraph' in el and ptext(el).strip() == head][-1]
         s.batch([{'updateParagraphStyle': {'range': s.rng(hp['startIndex'], hp['endIndex'], s.etab), 'paragraphStyle': {'namedStyleType': 'HEADING_2'}, 'fields': 'namedStyleType'}},
