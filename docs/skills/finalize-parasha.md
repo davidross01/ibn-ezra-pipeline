@@ -68,7 +68,7 @@ In the workbench, per doc:
 - Decisions with chips: `read_answers(<id>, commit=False, show=False, check_links=False)`; attach `<rows dir>/chat_answers.json` entries as `resolved_in_chat`.
 - Text: `run_composio_tool('GOOGLEDOCS_GET_DOCUMENT_PLAINTEXT', {'document_id': id, 'include_tabs_content': True}, account=DOCS)` → `data['plain_text']` (check both tabs are there).
 - Google Sheet: every tab as CSV plus decisions.json (GOOGLESHEETS_BATCH_GET, account `david-personal`).
-- One `gh_commit` under `<folder>/review/archive/` (or `review_vowels/archive/`, `review_sources/archive/`, `review_grammar/archive/`): `<title>.txt`, `<title> — decisions.json`, `decisions.json`; confirm with `gh_tree()`. Then GOOGLEDRIVE_TRASH_FILE (account googledrive_pulse-dwang) and check `trashed: True`; then status `archived` + `archive` folder in review_docs.json, commit, push.
+- One `gh_commit` under `<folder>/review/archive/` (or `review_vowels/archive/`, `review_sources/archive/`, `review_grammar/archive/`): `<title>.txt`, `<title> — decisions.json`, `decisions.json`; confirm with `gh_tree()`. Then the doc into “Ibn Ezra — Older reviews” (`sync_reviews()` does this for every doc set to `applied`; David, 9 Nov 2026: kept, not trashed); then status `archived` + `archive` folder in review_docs.json, commit, push.
 
 ## 10. Report
 Send the full book and the parasha PDF with SendUserFile. In a few lines: final pages, what the last change was, full-book page count, key-to-terms places added, the Drive folder refreshed, what was archived (with each doc's link), and the next parasha with its first page.

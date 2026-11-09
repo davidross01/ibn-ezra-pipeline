@@ -411,6 +411,29 @@ def _find(d, k):
 
 
 REVIEWS_FOLDER_ID = '1O7WtvLyYhia5hb0PldzL5NKzgZMLRStN'
+OLDER_FOLDER = 'Ibn Ezra — Older reviews'            # David, 9 Nov 2026: finished reviews kept, not trashed
+OLDER_FOLDER_ID = '1jUeiNkiIifdx6nSU8U8tosrQOjf5LX9A'  # in the book folder, limited access like the reviews folder
+
+
+def _private_folder(fid, name):
+    m = _run('GOOGLEDRIVE_GET_FILE_METADATA', {'file_id': fid, 'fields': 'id,parents,trashed,inheritedPermissionsDisabled'}, account=DRIVE)
+    if _find(m, 'trashed') or DRIVE_ROOT not in (_find(m, 'parents') or []):
+        raise RuntimeError(f'{name}: not found in the book folder; make it there with the Google Drive connector '
+                           '(create_file, inheritedPermissionsDisabled=true) and set its id in wb.py')
+    if _find(m, 'inheritedPermissionsDisabled') is not True:
+        raise RuntimeError(f'{name} is not limited-access: anyone with the book link could read the reviews. '
+                           'Set inheritedPermissionsDisabled=true (Google Drive connector, update_file) first.')
+    return fid
+
+
+def _move_into(file_id, folder_id):
+    """Out of the trash if it is there, and into the folder alone (its other parents removed)."""
+    _run('GOOGLEDRIVE_UPDATE_FILE_METADATA_PATCH', {'fileId': file_id, 'labels': {'trashed': False}}, account=DRIVE)
+    m = _run('GOOGLEDRIVE_GET_FILE_METADATA', {'file_id': file_id, 'fields': 'parents'}, account=DRIVE)
+    a = {'fileId': file_id, 'add_parents': folder_id}
+    other = [x for x in (_find(m, 'parents') or []) if x != folder_id]
+    if other: a['remove_parents'] = ','.join(other)
+    _run('GOOGLEDRIVE_UPDATE_FILE_PUT', a, account=DRIVE)
 
 
 def _reviews_folder(create=True):
@@ -419,15 +442,7 @@ def _reviews_folder(create=True):
     folder has LIMITED ACCESS (inheritedPermissionsDisabled = true): the review docs inside stay private to David. That
     setting cannot be made with the Composio tools (their raw proxy is the Going Pro account), only with the Google Drive
     connector's update_file — so this never creates the folder, and stops if the folder is not limited."""
-    m = _run('GOOGLEDRIVE_GET_FILE_METADATA', {'file_id': REVIEWS_FOLDER_ID,
-             'fields': 'id,name,parents,trashed,inheritedPermissionsDisabled'}, account=DRIVE)
-    if _find(m, 'trashed') or DRIVE_ROOT not in (_find(m, 'parents') or []):
-        raise RuntimeError(f'{REVIEWS_FOLDER}: not found in the book folder; make it there with the Google Drive connector '
-                           '(update_file inheritedPermissionsDisabled=true) and set REVIEWS_FOLDER_ID')
-    if _find(m, 'inheritedPermissionsDisabled') is not True:
-        raise RuntimeError(f'{REVIEWS_FOLDER} is not limited-access: anyone with the book link could read the reviews. '
-                           'Set inheritedPermissionsDisabled=true (Google Drive connector, update_file) before syncing.')
-    return REVIEWS_FOLDER_ID
+    return _private_folder(REVIEWS_FOLDER_ID, REVIEWS_FOLDER)
 
 
 def _archive_dir(entry):
@@ -437,7 +452,8 @@ def _archive_dir(entry):
 
 def archive_doc(entry):
     """Archive one applied review doc (docs/rules/review_doc.md, "Archiving"): a plain-text copy of both tabs and the
-    answers (ID, Decision, Your note) committed to the repo; then, only after the commit, the doc to the Drive trash."""
+    answers (ID, Decision, Your note) committed to the repo; then, only after the commit, the doc moves to the folder
+    "Ibn Ezra — Older reviews" (David, 9 Nov 2026: kept there, no longer trashed)."""
     doc_id, title = entry['id'], entry['title']
     txt = _run('GOOGLEDOCS_GET_DOCUMENT_PLAINTEXT', {'document_id': doc_id, 'include_tabs_content': True, 'table_cell_delimiter': ' | '}, account=DOCS)
     text = txt.get('plain_text') or txt.get('text') or _find(txt, 'plain_text') or json.dumps(txt, ensure_ascii=False)
@@ -454,15 +470,18 @@ def archive_doc(entry):
     gh_commit({f'{folder}/{safe}.txt': text, dpath: json.dumps(dec, ensure_ascii=False, indent=1)},
               f'Archive review doc: {title}\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>')
     gh_bytes(f'{folder}/{safe}.txt')                      # the commit is there before the doc goes
-    _run('GOOGLEDRIVE_TRASH_FILE', {'file_id': doc_id}, account=DRIVE)
+    _move_into(doc_id, _private_folder(OLDER_FOLDER_ID, OLDER_FOLDER))
     return folder
 
 
 def sync_reviews(dry=False):
-    """Every open review doc in the folder; every fully applied one archived and trashed; review_docs.json updated."""
+    """Every open review doc in "Reviews in progress"; every fully applied one archived (text + answers committed) and
+    moved to "Older reviews"; every archived doc found elsewhere (the trash included) moved there too; review_docs.json updated."""
     reg = gh_json('review_docs.json'); docs = reg['docs']
     fid = _reviews_folder(create=not dry)
     inside = {f['id'] for f in _drive_ls(fid)} if fid else set()
+    older = _private_folder(OLDER_FOLDER_ID, OLDER_FOLDER)
+    in_older = {f['id'] for f in _drive_ls(older)}
     log, changed = [], False
     for e in docs:
         st = (e.get('status') or '')
@@ -476,7 +495,14 @@ def sync_reviews(dry=False):
         elif st == 'applied':
             if not dry:
                 e['archive'] = archive_doc(e); e['status'] = 'archived'; changed = True
-            log.append(f'applied → archived and trashed: {e["title"]}')
+            log.append(f'applied → archived, moved to Older reviews: {e["title"]}')
+        elif st == 'archived' and e['id'] not in in_older:
+            try:
+                if not dry:
+                    _move_into(e['id'], older)
+                log.append(f'archived → moved to Older reviews: {e["title"]}')
+            except RuntimeError:
+                log.append(f'archived, no longer on Drive (text in {e.get("archive")}): {e["title"]}')
     if changed:
         gh_commit({'review_docs.json': json.dumps(reg, ensure_ascii=False, indent=1)},
                   'review_docs.json: applied review docs archived (sync_reviews)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>')
