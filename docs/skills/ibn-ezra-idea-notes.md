@@ -59,6 +59,6 @@ Before the doc is built, check the paragraph against its sources (9 Nov 2026):
 - Keep each source in review_audit/sources/library.json, as read on Sefaria.
 - In review_audit/citations.json, under `<rows key>:<row id>`, record the passages the paragraph rests on and the verdict of the check: supported, partly or not supported, with the problems.
 - Rewrite whatever says more than its source. A "partly" may stand only with an accepted note saying why: your own reasoning marked "it seems", the "what a reader would think" clause, or background David asked for.
-- `python3 -I scripts/cite_check.py` must pass (CI runs it). make_rows then opens the row's Alternative with the sources' Hebrew.
+- `python3 -I scripts/cite_check.py` must pass (CI runs it). make_rows puts the sources' Hebrew in the row's Explanation (“Source (Hebrew)”); the Alternative is the English paragraph alone (David, 9 Nov 2026).
 
 After his answers, ideas.json "in review" becomes "done". Record what was read for every place in `<folder>/review/idea_sources.json` ({"ibn_ezra": …, "saadia": …}); check_all lists the places not yet recorded as "Idea sources".

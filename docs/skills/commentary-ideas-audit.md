@@ -55,7 +55,7 @@ The shell cannot reach Sefaria, so fetch in the Composio workbench.
   - Keep the source in review_audit/sources/library.json, as read on Sefaria.
   - In review_audit/citations.json, under `<rows key>:<row id>`, record the passage(s) the sentence rests on (word ranges) and the verdict of the check: supported, partly or not supported, with the problems.
   - Rewrite any sentence that says more than its source. A "partly" may stand only with an accepted note saying why: your own reasoning marked "it seems", the "what a reader would think" clause, or background David asked for.
-  - `python3 -I scripts/cite_check.py` must pass (CI runs it). make_rows then opens the row's Alternative with the source's Hebrew.
+  - `python3 -I scripts/cite_check.py` must pass (CI runs it). make_rows puts the source's Hebrew in the row's Explanation (“Source (Hebrew)”); the Alternative is the English alone (David, 9 Nov 2026).
 - The doc's closing section ("What the check found clean") says three things: how many places were read, which notes already had Ibn Ezra's own writings, and where Saadia has nothing on the idea.
 
 ## 5. Build the doc and register it
