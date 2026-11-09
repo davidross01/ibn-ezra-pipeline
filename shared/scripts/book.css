@@ -1,0 +1,135 @@
+@font-face { font-family: 'FRL'; src: url('@@FRL@@'); font-weight: 300 900; }
+@font-face { font-family: 'FSB'; src: url('@@FSB@@'); font-weight: 700; }
+@font-face { font-family: 'FSR'; src: url('@@FSR@@'); font-weight: 400; }
+@font-face { font-family: 'FRC'; src: url('@@FRC@@'); font-weight: 700; }
+@font-face { font-family: 'Pagella'; src: url('@@PR@@'); font-weight: 400; font-style: normal; }
+@font-face { font-family: 'Pagella'; src: url('@@PI@@'); font-weight: 400; font-style: italic; }
+@font-face { font-family: 'Pagella'; src: url('@@PB@@'); font-weight: 700; font-style: normal; }
+@font-face { font-family: 'Pagella'; src: url('@@PBI@@'); font-weight: 700; font-style: italic; }
+
+@page { size: 664px 1000px; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #fff; }
+body { font-family: 'Pagella', serif; color: #141414; -webkit-print-color-adjust: exact; print-color-adjust: exact;
+       font-kerning: normal; text-rendering: geometricPrecision; }
+
+#measure { position: absolute; left: -3000px; top: 0; }
+#measure > div { position: relative; margin-bottom: 40px; }
+.col-full { width: 590px; }
+.col-note { width: 286px; }
+
+.page { width: 664px; height: 1000px; position: relative; overflow: hidden; page-break-after: always; break-after: page; }
+.page:last-child { page-break-after: auto; break-after: auto; }
+.sec { position: absolute; left: 37px; width: 590px; }
+
+/* running heads */
+.hdr { position: absolute; left: 37px; width: 590px; top: 29px; height: 18px; }
+.hdr .l { position: absolute; left: 0; bottom: 3px; }
+.hdr .r { position: absolute; right: 0; bottom: 3px; }
+.hdr .en-run { font-family: 'Carlito', sans-serif; font-weight: 700; font-size: 11.6px; letter-spacing: 0.01em; }
+.hdr .en-rng { font-family: 'Carlito', sans-serif; font-size: 12px; }
+.hdr .he-run { font-family: 'FRL'; font-weight: 700; font-size: 14.6px; direction: rtl; unicode-bidi: isolate; }
+.hdr .he-rng { font-family: 'FRL'; font-weight: 700; font-size: 15px; direction: rtl; unicode-bidi: isolate; }
+.hdr .pn { font-family: 'Carlito', sans-serif; font-weight: 700; font-size: 11.6px; }
+.hrule { position: absolute; left: 37px; width: 590px; top: 52px; height: 0; border-top: 1px solid #222; }
+
+/* verse band */
+.band { display: grid; grid-template-columns: 283px 291px; column-gap: 16px; align-items: first baseline; }
+.band .ve { font-style: italic; font-size: 15.5px; line-height: 20px; text-align: justify; hyphens: manual; }
+.band .ve p { margin: 0; }
+.band .ve i { font-style: normal; }
+.band .ve p + p { margin-top: 4px; }
+.band .vh { font-family: 'FSB'; font-weight: 700; font-size: 19.6px; line-height: 28px; direction: rtl;
+            text-align: justify; }
+.band .vh p { margin: 0; }
+.band .vh p + p { margin-top: 2px; }
+.band sup.vn { font-style: normal; font-size: 9.4px; line-height: 0; vertical-align: 0; position: relative; top: -0.55em; margin-right: 1px; }
+.band .drop { float: left; font-style: normal; font-size: 42px; line-height: 36px; margin: 2px 6px 0 0; }
+.band .dropl { font-size: 20.5px; line-height: 0; }
+.band .hvn { font-family: 'FSB'; font-weight: 700; font-size: 12.6px; line-height: 0; margin-left: 3px; }
+.band .hch { font-size: 19.6px; margin-left: 4px; }
+.band .aliyah { font-family: 'FSB'; font-weight: 700; font-size: 12.6px; line-height: 0; color: #222; margin-left: 5px; }
+.band .endmark { text-align: center; margin-top: 4px; }
+.band .brk { font-family: 'FSB'; font-weight: 700; font-size: 15px; line-height: 0; margin-inline-start: 6px; color: #222; }
+
+/* dividers */
+.divider { display: flex; align-items: center; height: 14px; }
+.divider i { flex: 1; border-top: 1px solid #222; height: 0; }
+.divider span { padding: 0 9px; }
+.divider.he span { font-family: 'FRL'; font-weight: 700; font-size: 11.4px; direction: rtl; line-height: 14px; }
+.divider.en { height: 13px; }
+.divider.en span { font-family: 'Carlito', sans-serif; font-weight: 700; font-size: 9.6px; letter-spacing: 0.08em; line-height: 13px; }
+.nrule { height: 0; border-top: 1px solid #222; }
+
+/* streams */
+.blk { margin: 0; }
+.hc { font-family: 'FRL'; font-weight: 500; font-size: 14.6px; line-height: 16.4px; direction: rtl; text-align: justify;
+      text-align-last: center; word-spacing: -0.02em; letter-spacing: normal; padding-right: 22px; text-indent: -22px; }
+.hc .hcn { font-weight: 500; }
+.hc b.lem { font-weight: 800; font-size: 1.1em; line-height: 1; }
+.hc .ref { font-weight: 400; font-size: 0.72em; line-height: 1; letter-spacing: -0.01em; color: #222; }
+
+.ec { font-size: 12.6px; line-height: 16.4px; text-align: justify; }
+.n { font-size: 10.6px; line-height: 13.6px; text-align: justify; }
+.ec .h, .n .h { font-family: "FRL"; font-weight: 500; font-size: 1.16em; line-height: 0.8; direction: rtl; unicode-bidi: isolate; }
+.ec .hb, .n .hb { font-weight: 700; }
+.ec b.vn, .n b.vn { font-weight: 700; }
+.sc { font-variant-caps: small-caps; font-style: inherit; }
+i.sc { font-style: italic; }
+.key { font-size: 1.12em; line-height: 0; }
+.hw .gl { font-family: 'Pagella'; font-style: normal; font-weight: 400; font-size: 0.7em; line-height: 0; color: #6b6b6b;
+          direction: ltr; unicode-bidi: isolate; margin-left: 0.18em; }
+.hw { unicode-bidi: isolate; }
+.k-chap { text-align: center; font-size: 15px; line-height: 18px; }
+.src { font-family: 'Carlito', sans-serif; font-size: 9.4px; line-height: 13px; color: #444; text-align: left; hyphens: manual; }
+
+/* fragment cuts */
+.cut-end { text-align-last: justify !important; }
+.cut-start { text-indent: 0 !important; }
+
+.notes { display: grid; grid-template-columns: 286px 286px; column-gap: 18px; align-items: start; }
+
+/* foot-of-page term line (F1) */
+.strip { font-family: 'Carlito', sans-serif; font-size: 9.2px; color: #555; white-space: nowrap; }
+.strip b { font-weight: 700; color: #444; }
+.stripline { position: absolute; left: 37px; width: 590px; top: 974px; text-align: center; }
+
+/* front matter */
+.fm { position: absolute; left: 37px; width: 590px; }
+.fm p { margin: 0 0 9px; font-size: 12.2px; line-height: 17px; text-align: justify; }
+.fm .lead { font-weight: 700; }
+.fm .h { font-family: 'FRL'; font-weight: 500; font-size: 1.12em; line-height: 1; direction: rtl; unicode-bidi: isolate; }
+.fmhead { text-align: center; font-family: 'Carlito', sans-serif; font-weight: 700; font-size: 9.6px; letter-spacing: 0.06em; }
+.keytab { width: 590px; border-collapse: collapse; font-size: 11.6px; line-height: 14.2px; }
+.keytab td { vertical-align: top; padding: 3.5px 0 3.9px; border-bottom: 0.75px solid #bbb; }
+.keytab td.kh { width: 168px; text-align: right; padding-right: 18px; font-family: 'FRL'; font-weight: 500; font-size: 14.5px; line-height: 14.2px; direction: rtl; }
+.keytab td.ke { width: 160px; padding-right: 8px; }
+.keytab td.kx { color: #222; }
+.keytab tr.sh td { border-bottom: 0.75px solid #222; font-family: 'Carlito', sans-serif; font-weight: 700; font-size: 10.6px; padding-top: 13px; padding-bottom: 2px; letter-spacing: 0.03em; }
+.keytab tr.sh.first td { padding-top: 4px; }
+.keytab tr.sh td .h { font-family: 'FRL'; font-weight: 700; font-size: 1.25em; }
+.keytab .h { font-family: 'FRL'; font-weight: 500; font-size: 1.16em; line-height: 1; direction: rtl; unicode-bidi: isolate; }
+
+/* title and half-title */
+.tp { position: absolute; left: 0; width: 664px; text-align: center; }
+.tp-he { font-family: 'FRL'; font-weight: 800; font-size: 54px; line-height: 60px; direction: rtl; }
+.tp-en { font-size: 30px; line-height: 34px; }
+.tp-rule { position: absolute; height: 0; border-top: 1px solid #222; }
+.tp-par { font-family: 'Carlito', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.08em; line-height: 16px; }
+.tp-ref { font-style: italic; font-size: 15px; line-height: 18px; }
+.tp-note { font-size: 11px; line-height: 14px; color: #333; }
+.ht-he { font-family: 'FRL'; font-weight: 800; font-size: 40px; line-height: 46px; direction: rtl; }
+.ht-en { font-size: 24px; line-height: 28px; }
+.fmdiv { position: absolute; left: 37px; width: 590px; top: 69px; }
+.fm p { margin: 0 0 11px; }
+.fm p.after-tab { margin-top: 12px; }
+.fm .hw .h { font-size: 1.12em; }
+
+.vs { font-family: 'FRL'; font-weight: 500; direction: rtl; unicode-bidi: isolate; font-style: normal; line-height: 1; }
+
+/* parasha heading on the first page of a parasha inside the volume */
+.phead { text-align: center; height: 60px; position: relative; }
+.phead-he { font-family: 'FRL'; font-weight: 800; font-size: 30px; line-height: 34px; direction: rtl; }
+.phead-en { font-family: 'Carlito', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.08em; line-height: 16px; margin-top: 2px; }
+.phead-ref { font-family: 'Pagella', serif; font-weight: 400; font-style: italic; font-size: 13px; letter-spacing: 0; }
+.phead-rule { width: 150px; margin: 7px auto 0; border-top: 1px solid #222; height: 0; }
