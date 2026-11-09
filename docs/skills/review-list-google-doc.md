@@ -26,7 +26,7 @@ Every review doc is in `review_docs.json` at the repo top (parasha, list, title,
 
 ## Build (the normal path): scripts/review_doc.py
 1. In the parasha folder: `review/listN_rows.py` → `review/make_rows.py` → `review/listN_rows.json` (id, part, cells [where, issue, now, alternative], url, plain, stands, changed), and `review/listN_doc_cfg.json` (title, subtitle, how, parts [(letter, heading, sentence, headers, widths)], clean, bold, account `googledocs_spinet-dirk`). Commit and push.
-2. In the workbench: fetch the three files from GitHub, `exec` the script, `B = Builder(cfg)`; then `B.phase_main()`, `B.phase_explanations()`, `B.phase_styles()`, `B.phase_links()`, `print(B.verify())`, each in its own cell (180 s limit). verify() must report chips = links_ok = rows and n_bad 0.
+2. In the workbench: fetch the three files from GitHub, `exec` the script, then `v = Builder.run(cfg)` (9 Nov 2026): it builds the doc, with a progress line under the subtitle, and records each finished phase, so if the cell is stopped (180 s limit) running it again finishes the same doc. verify() (the return value) must report chips = links_ok = rows and n_bad 0. Load wb.py with `.content.decode('utf-8')`, not `.text`.
 3. Save the id to `review/listN_doc_id.txt` and `review/listN_doc.json`, add the doc to review_docs.json (status open), commit.
 4. Final check: `read_answers('<review>')` from scripts/workbench/wb.py (check-review-doc) — chips, links and IDs in one call; record its result in the registry's `checked`.
 5. Tell David in one or two lines what the doc holds, with its link; he answers in the doc and says "review done".
