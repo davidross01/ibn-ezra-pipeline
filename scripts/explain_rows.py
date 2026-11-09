@@ -22,7 +22,7 @@ def find(key):
     k = key.lower()
     hits = [d for d in reg if d.get('rows_file') and (d.get('id') == key or k in (d.get('title') or '').lower()
             or k in (d.get('parasha') or '').lower() or k in d['rows_file'].lower())]
-    hits = [d for d in hits if d.get('status') == 'open'] or hits
+    hits = [d for d in hits if str(d.get('status', '')).startswith('open')] or hits
     if len(hits) != 1:
         sys.exit(f'"{key}" matches {len(hits)} reviews: ' + '; '.join(d.get('title') or '?' for d in hits))
     return hits[0]

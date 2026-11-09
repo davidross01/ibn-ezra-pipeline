@@ -65,6 +65,7 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 ## Review (review.md)
 - When David asks to add or change something, it becomes a review row; no new draft unless he asks for one, says to apply answered rows, asks for a layout fix, or says yes to applying now when asked with checkboxes.
 - One review doc per parasha (Google Doc in davross846, Decision chips, Explanations tab, Sefaria column with a one-word link); archive it when applied and David says. Only answered rows are applied; read the list's own "How to use" for what Approve/Keep mean; never overwrite David's Decision or note.
+- **Reviews in progress on Drive** (David, 9 Nov 2026): open and answered review docs live in the My Drive folder “Ibn Ezra — Reviews in progress” (not the link-shared book folder); `refresh_drive()` → `sync_reviews()` moves new ones in, and archives (text + decisions.json committed) and trashes every doc set to `applied`.
 - Where Now and Alternative render Hebrew (verse translation, Ibn Ezra's English), the **Now box opens with that Hebrew**, its own line (David, 8 Nov 2026); make_rows does it, `heb_box` where its choice is wrong.
 - New in review lists (all 9 Nov 2026):
   - An idea row's Alternative opens with its **source's Hebrew** (citations.json; make_rows does it).
@@ -87,6 +88,7 @@ When David states a rule in chat ("it should be ה׳", "place names are translit
 - Seforno-volume template: verse band (Hebrew 19.6/28 px, English on the same first line, פ/ס marks, new paragraph at a chapter), Hebrew commentary, English commentary, two-column notes (no chapter numbers), foot strip of very simple definitions.
 - Comments go on the page of their verse; notes stay with it where they fit (NB = 100, STRETCH 0.15 — don't tighten); no overlap warnings in a draft that is sent.
 - One book, page numbers continuous from book.json; a page-count change means rebuilding every later parasha and its booklet. Front matter (i–x) once at the start; each parasha has its own title page and ends פ פ פ.
+- **Glossary at the back** (David, 9 Nov 2026): every foot-strip term of the final parashot, A–Z, built by render.py `backonly` and joined after the last parasha by publish_pdfs.py (back/…Glossary.pdf); the strip stays on the pages, the key to terms stays as it is. Front/back pages must end above 980 px (layout.js warns).
 - One Chromium version per parasha (book.json "chromium"; check_all fails on a mismatch): rebuild an older parasha only where its version is installed. Since the audit rebuild (3 Nov 2026) every parasha is on 153.
 - **Shared build scripts** (9 Nov 2026): from Noach on, parashot build with shared/ (each parasha's scripts/*.py is a stub); Bereshit keeps its own. Change shared/ only through an answered row, and rebuild every parasha the change touches (the proof of the switch is in shared/README.md).
 - Licensing and print set-up not decided: don't change credits, trim, margins or font embedding.

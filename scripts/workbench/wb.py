@@ -87,7 +87,7 @@ def find_review(key):
     hits = [d for d in reg if d.get('id') and (d['id'] == key or k in (d.get('title') or '').lower()
                                                 or k in (d.get('parasha') or '').lower()
                                                 or k in (d.get('rows_file') or '').lower())]
-    open_hits = [d for d in hits if d.get('status') == 'open']
+    open_hits = [d for d in hits if str(d.get('status', '')).startswith('open')]
     hits = open_hits or hits
     if len(hits) != 1:
         raise SystemExit(f'"{key}" matches {len(hits)} review docs: ' + '; '.join(d.get('title') or d['id'] for d in hits))
@@ -284,6 +284,8 @@ def drive_plan(tree=None):
     # front matter plus the parasha files, which are numbered in Torah order ("01 Bereshit.pdf") so Drive lists them in order.
     plan = {'02': [], '03': [], '04': [], '05': []}
     plan['02'] = [('Ibn Ezra on the Torah - Front Matter.pdf', 'front/Ibn Ezra on the Torah - Front Matter.pdf', None)]
+    if 'back/Ibn Ezra on the Torah - Glossary.pdf' in tree:   # the glossary at the back of the book (David, 9 Nov 2026)
+        plan['02'].append(('Ibn Ezra on the Torah - Glossary.pdf', 'back/Ibn Ezra on the Torah - Glossary.pdf', None))
     for i, e in enumerate(book['parashot'], 1):
         P, folder = e['parasha'], e['folder']
         final = str(e.get('status', '')).startswith('final')

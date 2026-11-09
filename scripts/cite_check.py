@@ -38,7 +38,7 @@ def hebrew(key):
 def idea_rows():
     reg = json.load(open(os.path.join(ROOT, 'review_docs.json'), encoding='utf-8'))['docs']
     for d in reg:
-        if d.get('status') != 'open' or not d.get('rows_file'): continue
+        if not str(d.get('status', '')).startswith('open') or not d.get('rows_file'): continue   # 'open (partly applied)' too
         key = os.path.basename(d['rows_file']).replace('_rows.json', '')
         rows = json.load(open(os.path.join(ROOT, d['rows_file']), encoding='utf-8'))
         for r in rows:

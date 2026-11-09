@@ -43,6 +43,8 @@ cd bereshit
 python3 scripts/render.py data/model_final5.json build/front.html frontonly
 python3 scripts/make_pdf.py "$PWD/build/front.html" "$PWD/build/front.pdf" build/frep.json
 cp build/front.pdf "../front/Ibn Ezra on the Torah - Front Matter.pdf"
+# the build must report "warnings 0": a front page past 980 px loses its last lines (the key to terms grows with each parasha)
+# the Contents now ends with the Glossary on the page after the new last page; publish_pdfs.py rebuilds the glossary itself
 ```
 Check: 10 pages (i–x) and the new parasha in the contents with its first page (`pdftotext -layout`, strip \xad: names may carry soft hyphens).
 
