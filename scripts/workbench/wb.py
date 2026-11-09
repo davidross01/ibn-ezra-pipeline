@@ -393,7 +393,7 @@ def refresh_drive(dry=False):
 # are fully applied" — with checkboxes he chose: once fully applied, archive (a copy in the repo) and trash.
 # The folder is its own top-level folder in his Drive, not inside "Ibn Ezra on the Torah", because that folder is
 # shared with anyone who has the link and a doc inside it would be shared with them too.
-REVIEWS_FOLDER = 'Ibn Ezra — Reviews in progress'
+REVIEWS_FOLDER = '-02 Ibn Ezra — Reviews in progress'   # David's names (he put -01/-02 in front to sort them first); found by id
 _FOLDER_MIME = 'application/vnd.google-apps.folder'
 
 
@@ -411,7 +411,7 @@ def _find(d, k):
 
 
 REVIEWS_FOLDER_ID = '1O7WtvLyYhia5hb0PldzL5NKzgZMLRStN'
-OLDER_FOLDER = 'Ibn Ezra — Older reviews'            # David, 9 Nov 2026: finished reviews kept, not trashed
+OLDER_FOLDER = '-01 Ibn Ezra — Older reviews'            # David, 9 Nov 2026: finished reviews kept, not trashed
 OLDER_FOLDER_ID = '1jUeiNkiIifdx6nSU8U8tosrQOjf5LX9A'  # in the book folder, limited access like the reviews folder
 
 
