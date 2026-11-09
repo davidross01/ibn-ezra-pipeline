@@ -66,6 +66,17 @@ class Builder:
         s.rows = cfg['rows']; s.by_part = {}
         for r in s.rows: s.by_part.setdefault(r['part'], []).append(r)
 
+    def _make_plans(s):
+        """The paragraphs of both tabs, in order (the styles phase needs them too, also after a resume)."""
+        c = s.cfg
+        s.plan = [('TITLE', c['title']), ('NORMAL', c['subtitle']), ('NORMAL', progress_line([{'id': r['id'], 'decision': 'Unanswered'} for r in s.rows]))] + c['how']
+        for (letter, head, sent, hdr, w) in c['parts']:
+            s.plan += [('H1', head), ('NORMAL', sent), ('table', (len(s.by_part[letter]) + 1, len(hdr)))]
+        s.plan += [('H1', 'What the check found clean'), ('NORMAL', 'These need no decision.')] + [('CLEAN', x) for x in c['clean']]
+        s.eplan = [('H1', 'Explanations'), ('NORMAL', 'Each ID in the list opens its explanation here, and ↩ Back returns you to the same row.')]
+        for (letter, head, sent, hdr, w) in c['parts']:
+            s.eplan += [('H2', head), ('table', (len(s.by_part[letter]) + 1, 5))]
+
     # ---- resumable run ----
     def _state_path(s):
         import hashlib
@@ -80,7 +91,7 @@ class Builder:
     def run(cls, cfg, phases=('main', 'explanations', 'styles', 'links')):
         """Run (or resume) the build; call again after a stop. Returns verify()."""
         s = cls(cfg); st = json.load(open(s._state_path())) if os.path.exists(s._state_path()) else {'done': []}
-        s.id, s.etab, done = st.get('id'), st.get('etab'), st.get('done', [])
+        s.id, s.etab, done = st.get('id'), st.get('etab'), st.get('done', []); s._make_plans()
         if s.id and 'main' not in done:       # stopped inside phase 1: start that doc's body again
             body = s.body('t.0'); end = body[-1]['endIndex'] - 1
             if end > 1: s.batch([{'deleteContentRange': {'range': {'startIndex': 1, 'endIndex': end, 'tabId': 't.0'}}}])
@@ -160,10 +171,7 @@ class Builder:
             r = s.call('GOOGLEDOCS_CREATE_DOCUMENT_MARKDOWN', {'title': c['title'], 'markdown_text': ''})
             s.id = find_key(r, 'documentId') or find_key(r, 'document_id')
             if hasattr(s, '_state_path'): s._save([])            # the doc exists from here on: a rerun reuses it
-        s.plan = [('TITLE', c['title']), ('NORMAL', c['subtitle']), ('NORMAL', progress_line([{'id': r['id'], 'decision': 'Unanswered'} for r in s.rows]))] + c['how']
-        for (letter, head, sent, hdr, w) in c['parts']:
-            s.plan += [('H1', head), ('NORMAL', sent), ('table', (len(s.by_part[letter]) + 1, len(hdr)))]
-        s.plan += [('H1', 'What the check found clean'), ('NORMAL', 'These need no decision.')] + [('CLEAN', x) for x in c['clean']]
+        s._make_plans()
         s.structure('t.0', s.plan)
         T = s.tables(s.body('t.0'))
         jobs = []
@@ -187,9 +195,6 @@ class Builder:
         s.batch([{'addDocumentTab': {'tabProperties': {'title': 'Explanations'}}}])
         tabs = s.get()
         s.etab = [k for k, t in tabs.items() if t['tabProperties'].get('title') == 'Explanations'][0]
-        s.eplan = [('H1', 'Explanations'), ('NORMAL', 'Each ID in the list opens its explanation here, and ↩ Back returns you to the same row.')]
-        for (letter, head, sent, hdr, w) in s.cfg['parts']:
-            s.eplan += [('H2', head), ('table', (len(s.by_part[letter]) + 1, 5))]
         s.structure(s.etab, s.eplan)
         T = s.tables(s.body(s.etab))
         jobs = []
