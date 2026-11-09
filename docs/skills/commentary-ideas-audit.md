@@ -51,7 +51,11 @@ The shell cannot reach Sefaria, so fetch in the Composio workbench.
 
 ## 4. Record what was read
 - In `<folder>/review/idea_sources.json`, give **every** key of ideas.json an entry: `{"ibn_ezra": "<source> (ideas_<key> A1)" | "already in the note: …" | "nothing further on Sefaria (links and Yesod Mora read)", "saadia": "Emunot veDeot II:6 (ideas_<key> B1)" | "nothing on this idea in Emunot veDeot"}`. A false hit gets "not an idea". Afterwards `sources_todo('<folder>')` must return an empty list, and `check_all.py <folder>` must report no "Idea sources" hits.
-- Before the doc is built, check every added sentence against its source (David, 9 Nov 2026): keep the source in review_audit/sources/library.json as read on Sefaria; record in review_audit/citations.json, under `<rows key>:<row id>`, the passage(s) the sentence rests on (word ranges) and the verdict of the check (supported / partly / not supported, with the problems). Rewrite any sentence that says more than its source; a "partly" stands only with an accepted note (your own reasoning marked "it seems", the "what a reader would think" clause, background David asked for). `python3 -I scripts/cite_check.py` must pass (CI runs it), and make_rows then opens the row's Alternative with the source's Hebrew.
+- Before the doc is built, check every added sentence against its source (David, 9 Nov 2026):
+  - Keep the source in review_audit/sources/library.json, as read on Sefaria.
+  - In review_audit/citations.json, under `<rows key>:<row id>`, record the passage(s) the sentence rests on (word ranges) and the verdict of the check: supported, partly or not supported, with the problems.
+  - Rewrite any sentence that says more than its source. A "partly" may stand only with an accepted note saying why: your own reasoning marked "it seems", the "what a reader would think" clause, or background David asked for.
+  - `python3 -I scripts/cite_check.py` must pass (CI runs it). make_rows then opens the row's Alternative with the source's Hebrew.
 - The doc's closing section ("What the check found clean") says three things: how many places were read, which notes already had Ibn Ezra's own writings, and where Saadia has nothing on the idea.
 
 ## 5. Build the doc and register it
@@ -61,6 +65,6 @@ The shell cannot reach Sefaria, so fetch in the Composio workbench.
   2. Set `cfg = gh_json('review_audit/<key>_doc_cfg.json'); cfg['rows'] = gh_json('review_audit/<key>_rows.json')`.
   3. Assert `cfg['account'] == 'googledocs_spinet-dirk'`. That is davross846; never use the Going Pro accounts.
   4. Run `v = Builder.run(cfg)`. n_bad must be 0. The doc gets its progress line under the subtitle.
-  5. Build one doc per cell (each cell has a 180 s limit). If a cell is stopped part-way, run `Builder.run(cfg)` again: it finishes the same doc (each finished phase is recorded in /mnt/files/review_builds/). Keep `v['url']` and `v['explanations_tab']`.
+  5. Build one doc per cell (each cell has a 180 s limit). If a cell is stopped part-way, run `Builder.run(cfg)` again: it finishes the same doc, because each finished phase is recorded in /mnt/files/review_builds/. Keep `v['url']` and `v['explanations_tab']`.
 - Save `review_audit/<key>_doc_id.txt`. Add the doc to `review_docs.json` with parasha, list "Ideas Audit", title, id, explanations_tab, rows_file, rows, opened, status "open", note and checked. List it under the open review docs in docs/HANDOFF.md.
 - Tell David in a line or two per doc what it adds, with the link to every doc. Approving a row reopens that parasha: apply the answers with apply-review-decisions, rebuild, and renumber the later parashot if the page count changes.
