@@ -5,7 +5,7 @@
 # Load (one workbench cell):
 #     r, _ = run_composio_tool('GITHUB_GET_RAW_REPOSITORY_CONTENT', {'owner': 'davidross01',
 #            'repo': 'ibn-ezra-commentary', 'path': 'scripts/workbench/wb.py', 'ref': 'main'})
-#     import requests; exec(requests.get(r['data']['content']['s3url']).text)
+#     import requests; exec(requests.get(r['data']['content']['s3url']).content.decode('utf-8'))   # .content.decode: .text guesses Latin-1 and garbles '·' and '–'
 # Then:
 #     read_answers('vowels')      # or 'Vayera', a doc id, or part of a title (review_docs.json)
 #     refresh_drive()             # dry=True to see the plan without changing Drive
