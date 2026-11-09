@@ -43,7 +43,7 @@ The shell cannot reach Sefaria. Fetch in the Composio workbench (`requests.get('
   5. **Rambam** after him.
   Give "why he brings it here" only where the verse itself prompts it, and name the sources with chapter and verse. **Limit:** one or two sentences each from Ibn Ezra's own writings and from Saadia, about 120–250 words in all; where Saadia has nothing on the idea, say nothing about him. Revising a paragraph adds to it and never cuts.
 - **Short** (3–4 sentences) for background science, with Saadia only if he speaks to it directly.
-- Build every claim on a source's own words; quote him where he states it. No hedges ("it seems", "on one reading"); no unsourced keys to a secret.
+- Build every claim on a source's own words; quote him where he states it. No hedges on what a source says ("on one reading", "probably"); where the reasoning is your own, not a source's — a link you draw between Ibn Ezra and Rambam, what follows from a view — say "it seems" (David, 9 Nov 2026: "Say it seems"). No unsourced keys to a secret.
 - Hebrew only by marker ({q:Book c:v:i-j}, {vw:…}, {nt:…}, {ec:…}), never typed; avoid Hebrew where English will do. A vowel named in the English gets its sign.
 - Anchor each added sentence on an English sentence of the existing note. Replace a sentence only when it is wrong or unsourced.
 

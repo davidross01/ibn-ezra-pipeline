@@ -40,7 +40,7 @@ The shell cannot reach Sefaria, so fetch in the Composio workbench.
   - Where English will do, avoid Hebrew and transliteration (write "the soul's name for knowing").
   - Write H{sc}ashem{/sc} in the added text.
   - When a vowel is named, give its sign.
-  - No hedges.
+  - No hedges on what a source says; where a sentence gives your own reasoning, not a source's, say "it seems" (David, 9 Nov 2026).
 - Row fields:
   - `id` (A1…, B1…), `part`, `c`, `v`, `where`, `ie=True`, `folder`
   - `issue`: say so when a place is raised again
