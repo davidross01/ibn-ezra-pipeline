@@ -12,7 +12,7 @@
 #
 # Accounts: David's own Google account only (davross846@gmail.com). Never the default
 # Going Pro / filmgoingpro accounts.
-import io, json, hashlib, contextlib, datetime, requests
+import io, json, re, hashlib, contextlib, datetime, requests
 
 OWNER, REPO, REF = 'davidross01', 'ibn-ezra-commentary', 'main'
 DOCS = 'googledocs_spinet-dirk'      # davross846
@@ -379,4 +379,98 @@ def refresh_drive(dry=False):
     print(('DRY RUN — ' if dry else '') + f'Drive: {len(log)} change(s), {same} already current' + (f', {len(bad)} MISMATCH' if bad else ', verified'))
     for x in log + ['!! ' + b for b in bad]:
         print('  ' + x)
+    try:
+        sync_reviews(dry=dry)          # the reviews-in-progress folder, every time the Drive is refreshed
+    except Exception as ex:
+        print(f'  !! reviews folder not synced: {ex}')
     return {'changes': log, 'same': same, 'mismatch': bad}
+
+
+# ---------------------------------------------------------------- reviews in progress (David, 9 Nov 2026)
+# "make a section in the Google drive with all of the current reviews in progress and have [them] removed once they
+# are fully applied" — with checkboxes he chose: once fully applied, archive (a copy in the repo) and trash.
+# The folder is its own top-level folder in his Drive, not inside "Ibn Ezra on the Torah", because that folder is
+# shared with anyone who has the link and a doc inside it would be shared with them too.
+REVIEWS_FOLDER = 'Ibn Ezra — Reviews in progress'
+_FOLDER_MIME = 'application/vnd.google-apps.folder'
+
+
+def _find(d, k):
+    if isinstance(d, dict):
+        if k in d: return d[k]
+        for v in d.values():
+            r = _find(v, k)
+            if r is not None: return r
+    elif isinstance(d, list):
+        for v in d:
+            r = _find(v, k)
+            if r is not None: return r
+    return None
+
+
+def _reviews_folder(create=True):
+    d = _run('GOOGLEDRIVE_FIND_FILE', {'q': f"name = '{REVIEWS_FOLDER}' and mimeType = '{_FOLDER_MIME}' and trashed = false",
+                                       'fields': 'files(id,name)', 'pageSize': 10}, account=DRIVE)
+    hit = d.get('files', [])
+    if hit:
+        return hit[0]['id']
+    if not create:
+        return None
+    r = _run('GOOGLEDRIVE_CREATE_FOLDER', {'name': REVIEWS_FOLDER}, account=DRIVE)
+    return r.get('id') or (r.get('response_data') or {}).get('id') or _find(r, 'id')
+
+
+def _archive_dir(entry):
+    base = (entry.get('parasha') or '').lower().replace(' ', '_')
+    return f'{base}/review/archive' if base in ('bereshit', 'noach', 'lech_lecha', 'vayera', 'chayei_sarah', 'toledot') else 'review_audit/archive'
+
+
+def archive_doc(entry):
+    """Archive one applied review doc (docs/rules/review_doc.md, "Archiving"): a plain-text copy of both tabs and the
+    answers (ID, Decision, Your note) committed to the repo; then, only after the commit, the doc to the Drive trash."""
+    doc_id, title = entry['id'], entry['title']
+    txt = _run('GOOGLEDOCS_GET_DOCUMENT_PLAINTEXT', {'document_id': doc_id, 'include_tabs_content': True, 'table_cell_delimiter': ' | '}, account=DOCS)
+    text = txt.get('plain_text') or txt.get('text') or _find(txt, 'plain_text') or json.dumps(txt, ensure_ascii=False)
+    ans = read_answers(doc_id, commit=False, show=False, check_links=False, progress=False)
+    rows = ans.get('rows', []) if isinstance(ans, dict) else ans
+    folder = _archive_dir(entry); safe = re.sub(r'[^\w .–—-]', '', title).strip()
+    dpath = f'{folder}/decisions.json'
+    try:
+        dec = gh_json(dpath)
+    except Exception:
+        dec = {}
+    dec[title] = {'doc_id': doc_id, 'archived': datetime.datetime.now().strftime('%Y-%m-%d'),
+                  'rows': [{'id': r['id'], 'decision': r.get('decision'), 'note': r.get('note') or ''} for r in rows]}
+    gh_commit({f'{folder}/{safe}.txt': text, dpath: json.dumps(dec, ensure_ascii=False, indent=1)},
+              f'Archive review doc: {title}\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>')
+    gh_bytes(f'{folder}/{safe}.txt')                      # the commit is there before the doc goes
+    _run('GOOGLEDRIVE_TRASH_FILE', {'file_id': doc_id}, account=DRIVE)
+    return folder
+
+
+def sync_reviews(dry=False):
+    """Every open review doc in the folder; every fully applied one archived and trashed; review_docs.json updated."""
+    reg = gh_json('review_docs.json'); docs = reg['docs']
+    fid = _reviews_folder(create=not dry)
+    inside = {f['id'] for f in _drive_ls(fid)} if fid else set()
+    log, changed = [], False
+    for e in docs:
+        st = (e.get('status') or '')
+        if not e.get('id') or e.get('status') == 'record':
+            continue
+        if st.startswith('open') or st.startswith('answered'):
+            if e['id'] not in inside:
+                if not dry:
+                    _run('GOOGLEDRIVE_MOVE_FILE', {'file_id': e['id'], 'add_parents': fid}, account=DRIVE)
+                log.append(f'in progress: {e["title"]}')
+        elif st == 'applied':
+            if not dry:
+                e['archive'] = archive_doc(e); e['status'] = 'archived'; changed = True
+            log.append(f'applied → archived and trashed: {e["title"]}')
+    if changed:
+        gh_commit({'review_docs.json': json.dumps(reg, ensure_ascii=False, indent=1)},
+                  'review_docs.json: applied review docs archived (sync_reviews)\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>')
+    print(('DRY RUN — ' if dry else '') + f'Reviews in progress: {len(log)} change(s)')
+    for x in log:
+        print('  ' + x)
+    return {'folder': fid, 'changes': log}
