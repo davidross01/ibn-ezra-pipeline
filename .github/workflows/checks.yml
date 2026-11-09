@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        parasha: [bereshit, noach, lech_lecha, vayera]
+        parasha: [bereshit, noach, lech_lecha, vayera, chayei_sarah, toledot]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,3 +18,12 @@ jobs:
           python-version: '3.12'
       - name: check_all ${{ matrix.parasha }}
         run: python3 -I scripts/check_all.py ${{ matrix.parasha }} --ci
+  rulings:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: rulings log current, no superseded model pointed to
+        run: python3 -I scripts/rulings.py --check
