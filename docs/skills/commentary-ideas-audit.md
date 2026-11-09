@@ -11,7 +11,7 @@ Load **commentary-house-rules** first. The rule is in docs/rules/notes.md, under
 
 ## 1. List the places
 - `<folder>/review/ideas.json` lists every idea place of the parasha ("done …", "kept as it was …", "not needed: …").
-- `python3 -c "import sys; sys.path.insert(0,'scripts'); import ideas_scan; print(ideas_scan.sources_todo('<folder>'))"` lists the places not yet recorded in `<folder>/review/idea_sources.json`. Read every place, including the ones David kept and the ones judged "not needed". Raise them again wherever Ibn Ezra's own writings or Saadia add something (David's choice of 8 Nov).
+- `python3 -c "import sys; sys.path.insert(0,'scripts'); import ideas_scan; print(ideas_scan.sources_todo('<folder>'))"` lists the places not yet recorded in `<folder>/review/idea_sources.json`. Run `python3 -I scripts/ideas_scan.py <folder> --hebrew` as well: places only Ibn Ezra's Hebrew names (9 Nov 2026); record each in ideas.json or `review/ideas_he.json`. Read every place, including the ones David kept and the ones judged "not needed". Raise them again wherever Ibn Ezra's own writings or Saadia add something (David's choice of 8 Nov).
 - Pull each place's note text from the model (`<folder>/data/model.json`, or `data/model_final5.json` for Bereshit) into a scratch file, so the sources can be read against what the note already says.
 
 ## 2. Read the sources on Sefaria

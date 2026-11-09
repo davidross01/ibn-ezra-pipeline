@@ -19,7 +19,8 @@ misprint scan, the house-rule and layout report (check_book), and these, which w
   - page numbers: book.json continuous, parasha.json first_page = book.json, last build (build/rep.json)
     = book.json, and the build is newer than the model
   - Ibn Ezra's ideas (scripts/ideas_scan.py): verses not yet in <folder>/review/ideas.json; --accept never
-    hides them, they stay listed until each is written up ("done") or judged "not needed: <why>"
+    hides them, they stay listed until each is written up ("done") or judged "not needed: <why>"; and the wider
+    search in his Hebrew ("Ideas (Hebrew)", 9 Nov 2026), whose finds leave the list through ideas.json or ideas_he.json
 Hits already read and judged are kept in <folder>/review/check_baseline.json (written by --accept) and
 are counted, not listed, so a new problem stands out. Exit status 1 if anything new or failing.
 """
@@ -81,13 +82,15 @@ def plain(t):
 
 
 def own_checks(folder, M):
-    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'Ideas': [], 'Idea sources': [], 'Its parallel': [], 'markers': [], 'pages': []}
+    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'Ideas': [], 'Ideas (Hebrew)': [], 'Idea sources': [], 'Its parallel': [], 'markers': [], 'pages': []}
     # every word pointed in full (Vowels Review 1, E1)
     sys.path.insert(0, os.path.join(ROOT, 'scripts')); import partial_vowels
     out['Partly pointed'] = [f'{c}:{v} {w}' for c, v, w in partial_vowels.scan(folder)]
     # Ibn Ezra's ideas get a full paragraph (notes.md, 30 Oct 2026): comments touching an idea, not yet in review/ideas.json
     import ideas_scan
     out['Ideas'] = [f'{c}:{v} ({", ".join(k)})' for c, v, k in ideas_scan.scan(folder)]
+    # the wider search in Ibn Ezra's Hebrew (9 Nov 2026); a find leaves the list through ideas.json or ideas_he.json
+    out['Ideas (Hebrew)'] = [f'{c}:{v} ({", ".join(k)})' for c, v, k in ideas_scan.scan_he(folder)]
     # each idea place: Ibn Ezra's own writings and Saadia's Emunot veDeot read and recorded (notes.md, David, 8 Nov 2026)
     out['Idea sources'] = [f'{k}: not yet in review/idea_sources.json' for k in ideas_scan.sources_todo(folder)]
     # Hebrew spans traced to a source (copied by script, never typed)
@@ -211,7 +214,7 @@ def main():
         fail = [k for k in fail if k != 'pages' or res['pages']]
     bpath = os.path.join(ROOT, folder, 'review', 'check_baseline.json')
     base = json.load(open(bpath, encoding='utf-8')) if os.path.exists(bpath) else {}
-    accept_kinds = ('vowels', 'misprints', 'house rules + layout', 'Name in English', 'Partly pointed', 'Hebrew sources', 'Ideas', 'Idea sources', 'Its parallel')
+    accept_kinds = ('vowels', 'misprints', 'house rules + layout', 'Name in English', 'Partly pointed', 'Hebrew sources', 'Ideas', 'Ideas (Hebrew)', 'Idea sources', 'Its parallel')
     new_total = 0
     print(f'check_all {folder} ({mpath})')
     for k, v in res.items():
@@ -221,7 +224,7 @@ def main():
         known = {stable(x) for x in base.get(k, [])} if k in accept_kinds else set()
         new = [x for x in v if stable(x) not in known]
         old = len(v) - len(new)
-        new_total += len(new) if k in accept_kinds and not (ci and k in ('Ideas', 'Idea sources')) else 0
+        new_total += len(new) if k in accept_kinds and not (ci and k in ('Ideas', 'Ideas (Hebrew)', 'Idea sources')) else 0
         status = 'ok' if not new else f'{len(new)} NEW' if k in accept_kinds else f'{len(new)} FAIL'
         print(f'  {k:22} {status}' + (f'  ({old} already read)' if old else ''))
         for x in new[:60]:
@@ -233,7 +236,7 @@ def main():
                 if x in known: print(f'      (read) {x[:200]}')
     if accept:
         # Ideas are never remembered as read: a verse leaves the list only through <folder>/review/ideas.json
-        base = {k: res[k] for k in accept_kinds if k in res and k not in ('Ideas', 'Idea sources')}
+        base = {k: res[k] for k in accept_kinds if k in res and k not in ('Ideas', 'Ideas (Hebrew)', 'Idea sources')}
         os.makedirs(os.path.dirname(bpath), exist_ok=True)
         json.dump(base, open(bpath, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
         print(f'accepted: {sum(len(v) for v in base.values())} hits remembered as read -> {os.path.relpath(bpath, ROOT)}')
