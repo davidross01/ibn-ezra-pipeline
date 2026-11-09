@@ -92,7 +92,7 @@ class Builder:
         for ph in phases:
             if ph in done: continue
             getattr(s, 'phase_' + ph)(); done.append(ph); s._save(done)
-        return s.verify()
+        return s.verify() if all(p in done for p in ('main', 'explanations', 'styles', 'links')) else {'done': done, 'id': s.id}
 
     # ---- API ----
     def call(s, slug, args):
