@@ -410,16 +410,24 @@ def _find(d, k):
     return None
 
 
+REVIEWS_FOLDER_ID = '1O7WtvLyYhia5hb0PldzL5NKzgZMLRStN'
+
+
 def _reviews_folder(create=True):
-    d = _run('GOOGLEDRIVE_FIND_FILE', {'q': f"name = '{REVIEWS_FOLDER}' and mimeType = '{_FOLDER_MIME}' and trashed = false",
-                                       'fields': 'files(id,name)', 'pageSize': 10}, account=DRIVE)
-    hit = d.get('files', [])
-    if hit:
-        return hit[0]['id']
-    if not create:
-        return None
-    r = _run('GOOGLEDRIVE_CREATE_FOLDER', {'name': REVIEWS_FOLDER}, account=DRIVE)
-    return r.get('id') or (r.get('response_data') or {}).get('id') or _find(r, 'id')
+    """The folder "Ibn Ezra — Reviews in progress", inside the book folder "Ibn Ezra on the Torah - PDFs" (David, 9 Nov
+    2026: "the folder in Ibn Ezra on the Torah - PDFs"). The book folder is shared with anyone who has the link, so this
+    folder has LIMITED ACCESS (inheritedPermissionsDisabled = true): the review docs inside stay private to David. That
+    setting cannot be made with the Composio tools (their raw proxy is the Going Pro account), only with the Google Drive
+    connector's update_file — so this never creates the folder, and stops if the folder is not limited."""
+    m = _run('GOOGLEDRIVE_GET_FILE_METADATA', {'file_id': REVIEWS_FOLDER_ID,
+             'fields': 'id,name,parents,trashed,inheritedPermissionsDisabled'}, account=DRIVE)
+    if _find(m, 'trashed') or DRIVE_ROOT not in (_find(m, 'parents') or []):
+        raise RuntimeError(f'{REVIEWS_FOLDER}: not found in the book folder; make it there with the Google Drive connector '
+                           '(update_file inheritedPermissionsDisabled=true) and set REVIEWS_FOLDER_ID')
+    if _find(m, 'inheritedPermissionsDisabled') is not True:
+        raise RuntimeError(f'{REVIEWS_FOLDER} is not limited-access: anyone with the book link could read the reviews. '
+                           'Set inheritedPermissionsDisabled=true (Google Drive connector, update_file) before syncing.')
+    return REVIEWS_FOLDER_ID
 
 
 def _archive_dir(entry):
