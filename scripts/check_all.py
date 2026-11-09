@@ -81,7 +81,7 @@ def plain(t):
 
 
 def own_checks(folder, M):
-    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'Ideas': [], 'Idea sources': [], 'markers': [], 'pages': []}
+    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'Ideas': [], 'Idea sources': [], 'Its parallel': [], 'markers': [], 'pages': []}
     # every word pointed in full (Vowels Review 1, E1)
     sys.path.insert(0, os.path.join(ROOT, 'scripts')); import partial_vowels
     out['Partly pointed'] = [f'{c}:{v} {w}' for c, v, w in partial_vowels.scan(folder)]
@@ -94,6 +94,12 @@ def own_checks(folder, M):
     sys.path.insert(0, os.path.join(ROOT, 'scripts')); import source_check
     missing, far, _, _ = source_check.check(folder)
     out['Hebrew sources'] = ['not found: ' + x for x in missing] + ['far: ' + x for x in far]
+    # Ibn Ezra's אָחִיו said of a word is "its parallel", not "its brother" (translation.md; David, 9 Nov 2026)
+    for sec in ('ec', 'notes'):
+        for b in M[sec]:
+            t = plain(b.get('text', ''))
+            for m in re.finditer(r'\b(?:its|their) brothers?\b|\bis the brother of\b', t):
+                out['Its parallel'].append(f"{sec} {b['ch']}:{b['v']}: …{t[max(0, m.start() - 40):m.end() + 30]}…")
     for sec in ('ec', 'notes'):
         for b in M[sec]:
             if re.search(r'\{[oq]:', b.get('text', '')):
@@ -205,7 +211,7 @@ def main():
         fail = [k for k in fail if k != 'pages' or res['pages']]
     bpath = os.path.join(ROOT, folder, 'review', 'check_baseline.json')
     base = json.load(open(bpath, encoding='utf-8')) if os.path.exists(bpath) else {}
-    accept_kinds = ('vowels', 'misprints', 'house rules + layout', 'Name in English', 'Partly pointed', 'Hebrew sources', 'Ideas', 'Idea sources')
+    accept_kinds = ('vowels', 'misprints', 'house rules + layout', 'Name in English', 'Partly pointed', 'Hebrew sources', 'Ideas', 'Idea sources', 'Its parallel')
     new_total = 0
     print(f'check_all {folder} ({mpath})')
     for k, v in res.items():
