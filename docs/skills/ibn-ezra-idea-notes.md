@@ -35,25 +35,16 @@ The shell cannot reach Sefaria. Fetch in the Composio workbench (`requests.get('
 - If no source that may be named explains a hint, do not invent one: say so in the review list's notes and record `"not needed: a bare hint; no source that may be named"` in ideas.json.
 
 ## 3. Write the paragraph
-- **Full** for a real idea, always in this order (David, 8 Nov 2026):
-  1. what Ibn Ezra says, the idea in detail;
-  2. what a reader would otherwise think;
-  3. **Ibn Ezra explained by Ibn Ezra**: Yesod Mora, his comments elsewhere, and Avi Ezer on his words;
-  4. **Saadia**: Emunot veDeot on the same idea;
-  5. **Rambam** after him.
-  Give "why he brings it here" only where the verse itself prompts it, and name the sources with chapter and verse. **Limit:** one or two sentences each from Ibn Ezra's own writings and from Saadia, about 120–250 words in all; where Saadia has nothing on the idea, say nothing about him. Revising a paragraph adds to it and never cuts.
+- **Full** for a real idea, one paragraph, the way the notes were written before 8 Nov (David, 9 Nov 2026: "write it the way that it was before with the philosophical notes, but just add in … where rav Saadia gaon says something"): the idea in detail and what a reader would otherwise think; "why he brings it here" only where the verse itself prompts it; the sources by name with chapter and verse (Avi Ezer, Rambam). Inside the paragraph, where they add something:
+  - **Saadia**: a sentence from Emunot veDeot on the same idea, treatise and chapter named;
+  - **Ibn Ezra's own writings**: a short sentence saying where he explains himself (Yesod Mora, his comment on another verse) — David on the Ideas Audits: "Just say where to find the secret", "Just say where in Deuteronomy the reader can find it".
+  Revising a paragraph adds to it and never cuts.
 - **Short** (3–4 sentences) for background science, with Saadia only if he speaks to it directly.
 - Build every claim on a source's own words; quote him where he states it. No hedges on what a source says ("on one reading", "probably"). Where the reasoning is your own and not a source's, such as a link you draw between Ibn Ezra and Rambam or what follows from a view, say "it seems" (David, 9 Nov 2026: "Say it seems"). No unsourced keys to a secret.
 - Hebrew only by marker ({q:Book c:v:i-j}, {vw:…}, {nt:…}, {ec:…}), never typed; avoid Hebrew where English will do. A vowel named in the English gets its sign.
 - Anchor each added sentence on an English sentence of the existing note. Replace a sentence only when it is wrong or unsourced.
 
 ## 4. Put it to David
-Build the draft **without** the additions. Then put each added sentence to David as its own short row in the review list's **Ideas Part** (Keep / Approve), in the fixed order. David, 8 Nov 2026: "show what it would be like without these additions and then an alternative with them". Each row has:
-- where;
-- the issue;
-- Ibn Ezra's Hebrew ({hcb:c:v:k}) with its English;
-- **Now**: the note without the sentence, showing the sentences before and after the place;
-- **Alternative**: the same text with the sentence added;
-- the plain line "Source read on Sefaria: …".
+Every idea paragraph is its own row in the review list's **Ideas Part** (Keep / Approve), one row per paragraph (David, 9 Nov 2026; the one-sentence rows of 8 Nov are superseded): where, the issue, Ibn Ezra's Hebrew ({hcb:c:v:k}) with its English, **Now** = the note without the paragraph, **Alternative** = with it, and the plain line "Sources read on Sefaria: …". Model: Toledot List 1 Part F as rebuilt on 9 Nov (F1–F5).
 
-When several rows fill the same place, anchor each one on the sentence that follows the place: the op's `old` is the first words of that sentence and `new` is the added sentence followed by those words. Approved rows then go in in ID order. The model is `fadd()` in review_audit/tol1_rows.py (Toledot List 1, F1–F18). Do not make one row for a whole paragraph. Before the doc is built, check every added sentence against its source (David, 9 Nov 2026): keep the source in review_audit/sources/library.json as read on Sefaria; record in review_audit/citations.json, under `<rows key>:<row id>`, the passage(s) the sentence rests on (word ranges) and the verdict of the check (supported / partly / not supported, with the problems). Rewrite any sentence that says more than its source; a "partly" stands only with an accepted note (your own reasoning marked "it seems", the "what a reader would think" clause, background David asked for). `python3 -I scripts/cite_check.py` must pass (CI runs it), and make_rows then opens the row's Alternative with the source's Hebrew. After his answers, ideas.json "in review" becomes "done". Record what was read for every place in `<folder>/review/idea_sources.json` ({"ibn_ezra": …, "saadia": …}); check_all lists the places not yet recorded as "Idea sources".
+Before the doc is built, check the paragraph against its sources (9 Nov 2026): keep each source in review_audit/sources/library.json as read on Sefaria; record in review_audit/citations.json, under `<rows key>:<row id>`, the passages the paragraph rests on and the verdict of the check (supported / partly / not supported, with the problems). Rewrite whatever says more than its source; a "partly" stands only with an accepted note (your own reasoning marked "it seems", the "what a reader would think" clause, background David asked for). `python3 -I scripts/cite_check.py` must pass (CI runs it), and make_rows opens the row's Alternative with the sources' Hebrew. After his answers, ideas.json "in review" becomes "done". Record what was read for every place in `<folder>/review/idea_sources.json` ({"ibn_ezra": …, "saadia": …}); check_all lists the places not yet recorded as "Idea sources".
