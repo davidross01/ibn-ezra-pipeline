@@ -117,7 +117,43 @@ def _link_check(doc, rows_file):
     return [l.strip(' -') for l in lines[i + 1:]] if i is not None else lines[-3:]
 
 
-def read_answers(key, commit=True, show=True, check_links=True, meta=None):
+def _progress_line(rows, when):
+    from collections import OrderedDict
+    import re as _re
+    done = [r for r in rows if r['decision'] not in ('Unanswered', '', None)]
+    cnt = OrderedDict()
+    for r in done: cnt[r['decision']] = cnt.get(r['decision'], 0) + 1
+    runs, prev = [], None
+    for r in rows:
+        if r['decision'] not in ('Unanswered', '', None): continue
+        m = _re.match(r'([A-Z]+)(\d+)', r['id'])
+        if not m: continue
+        L, n = m.group(1), int(m.group(2))
+        if prev and prev[0] == L and prev[2] == n - 1: prev[2] = n
+        else: prev = [L, n, n]; runs.append(prev)
+    rng = ', '.join(f'{L}{a}' if a == b else f'{L}{a}–{L}{b}' for L, a, b in runs)
+    return (f'Progress ({when}): {len(done)} of {len(rows)} answered' + (' (' + ', '.join(f'{k} {v}' for k, v in cnt.items()) + ')' if cnt else '')
+            + (f' · open: {rng}' if rng else ' · all answered'))
+
+def _set_progress(doc_id, body, line):
+    """The progress line under the doc's subtitle (David, 9 Nov 2026): replaced in place, or added if missing.
+    Touches no row, chip or note."""
+    paras = [el for el in body if 'paragraph' in el][:8]
+    old = next((el for el in paras if _ptext({'content': [el]}).startswith('Progress')), None)
+    if old:
+        a, b = old['startIndex'], old['endIndex'] - 1
+        reqs = [{'deleteContentRange': {'range': {'startIndex': a, 'endIndex': b}}}, {'insertText': {'location': {'index': a}, 'text': line}}]
+    else:
+        ti = next((i for i, el in enumerate(paras) if el['paragraph'].get('paragraphStyle', {}).get('namedStyleType') == 'TITLE'), None)
+        if ti is None or ti + 1 >= len(paras): return
+        a = paras[ti + 1]['endIndex']
+        reqs = [{'insertText': {'location': {'index': a}, 'text': line + '\n'}},
+                {'updateParagraphStyle': {'range': {'startIndex': a, 'endIndex': a + len(line.encode('utf-16-le')) // 2 + 1}, 'paragraphStyle': {'namedStyleType': 'NORMAL_TEXT'}, 'fields': 'namedStyleType'}}]
+    n = len(line.encode('utf-16-le')) // 2
+    reqs.append({'updateTextStyle': {'range': {'startIndex': a, 'endIndex': a + n}, 'textStyle': {'italic': True, 'bold': False, 'foregroundColor': {'color': {'rgbColor': {'red': 0x52/255, 'green': 0x51/255, 'blue': 0x4f/255}}}}, 'fields': 'italic,bold,foregroundColor'}})
+    _run('GOOGLEDOCS_UPDATE_EXISTING_DOCUMENT', {'document_id': doc_id, 'edit_docs': reqs}, account=DOCS)
+
+def read_answers(key, commit=True, show=True, check_links=True, meta=None, progress=True):
     """Read only ID / Decision / Your note from a review Google Doc (main tab), check its chips and links,
     save <rows file> -> answers.json to GitHub and print a short summary. Returns the answers dict."""
     meta = meta or find_review(key)
@@ -165,6 +201,11 @@ def read_answers(key, commit=True, show=True, check_links=True, meta=None):
         except Exception as ex:
             out['link_check'] = [f'not checked: {ex}']
     out['link'] = f"https://docs.google.com/document/d/{meta['id']}/edit"
+    if progress and rows:
+        try:
+            _set_progress(meta['id'], body, _progress_line(rows, datetime.datetime.now().strftime('%-d %b %Y')))
+        except Exception as ex:
+            out['progress'] = f'not updated: {ex}'
     path = (rf.replace('rows.json', 'answers.json') if rf.endswith('rows.json') else (rf.rsplit('/', 1)[0] + '/answers.json' if '/' in rf else 'answers.json'))
     out['_path'] = path
     if commit:

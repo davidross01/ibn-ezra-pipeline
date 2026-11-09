@@ -7,7 +7,7 @@
 # cfg: title, subtitle, how (list of (kind, text)), parts [(letter, heading, sentence, headers, widths)],
 #      rows (review/listN_rows.json), clean (list of lines), account (googledocs account id of davross846).
 # Never use the default googledocs account: since 22 Oct 2026 it is the Going Pro account.
-import json, re
+import json, os, re
 
 HEB = re.compile('[א-ת]'); LAT = re.compile('[A-Za-z]')
 INK, GREY, HFILL, LINE, WHITE, LINK = '1f1e1d', '52514f', 'f5f3ee', 'e8e5dd', 'ffffff', '1155cc'
@@ -43,11 +43,56 @@ def ptext(par):
     return out
 
 
+def progress_line(answers, when=None):
+    """'Progress: 41 of 73 answered (Approve 7, Keep 33, Discuss 1) · open: B5, C2, D1–D18' (David, 9 Nov 2026)."""
+    tot = len(answers); done = [a for a in answers if a['decision'] not in ('Unanswered', '', None)]
+    cnt = {}
+    for a in done: cnt[a['decision']] = cnt.get(a['decision'], 0) + 1
+    open_ = [a['id'] for a in answers if a['decision'] in ('Unanswered', '', None)]
+    runs, prev = [], None                       # B5, D1–D18: consecutive IDs of one Part as a range
+    for i in open_:
+        L, n = re.match(r'([A-Z]+)(\d+)', i).groups(); n = int(n)
+        if prev and prev[0] == L and prev[2] == n - 1: prev[2] = n
+        else: prev = [L, n, n]; runs.append(prev)
+    rng = ', '.join(f'{L}{a}' if a == b else f'{L}{a}–{L}{b}' for L, a, b in runs)
+    head = f'Progress{" (" + when + ")" if when else ""}: {len(done)} of {tot} answered'
+    return head + (' (' + ', '.join(f'{k} {v}' for k, v in cnt.items()) + ')' if cnt else '') + (f' · open: {rng}' if rng else ' · all answered')
+
 class Builder:
+    """Build a review doc in phases. Builder.run(cfg) records each finished phase in /mnt/files/review_builds/,
+    so a run that is stopped part-way picks up where it left off instead of making a second doc (David, 9 Nov 2026)."""
     def __init__(s, cfg):
         s.cfg = cfg; s.acc = cfg['account']; s.id = None; s.etab = None
         s.rows = cfg['rows']; s.by_part = {}
         for r in s.rows: s.by_part.setdefault(r['part'], []).append(r)
+
+    # ---- resumable run ----
+    def _state_path(s):
+        import hashlib
+        key = hashlib.md5((s.cfg['title'] + json.dumps([r['id'] for r in s.rows])).encode()).hexdigest()[:12]
+        os.makedirs('/mnt/files/review_builds', exist_ok=True)
+        return f'/mnt/files/review_builds/{key}.json'
+
+    def _save(s, done):
+        json.dump({'title': s.cfg['title'], 'id': s.id, 'etab': s.etab, 'done': done}, open(s._state_path(), 'w'))
+
+    @classmethod
+    def run(cls, cfg, phases=('main', 'explanations', 'styles', 'links')):
+        """Run (or resume) the build; call again after a stop. Returns verify()."""
+        s = cls(cfg); st = json.load(open(s._state_path())) if os.path.exists(s._state_path()) else {'done': []}
+        s.id, s.etab, done = st.get('id'), st.get('etab'), st.get('done', [])
+        if s.id and 'main' not in done:       # stopped inside phase 1: start that doc's body again
+            body = s.body('t.0'); end = body[-1]['endIndex'] - 1
+            if end > 1: s.batch([{'deleteContentRange': {'range': {'startIndex': 1, 'endIndex': end, 'tabId': 't.0'}}}])
+        if s.id and 'main' in done and 'explanations' not in done:   # stopped inside phase 2: drop the half-made tab
+            tabs = s.get()
+            for k, t in tabs.items():
+                if t['tabProperties'].get('title') == 'Explanations': s.batch([{'deleteTab': {'tabId': k}}])
+            s.etab = None
+        for ph in phases:
+            if ph in done: continue
+            getattr(s, 'phase_' + ph)(); done.append(ph); s._save(done)
+        return s.verify()
 
     # ---- API ----
     def call(s, slug, args):
@@ -111,9 +156,11 @@ class Builder:
     # ---- phase 1: main tab ----
     def phase_main(s):
         c = s.cfg
-        r = s.call('GOOGLEDOCS_CREATE_DOCUMENT_MARKDOWN', {'title': c['title'], 'markdown_text': ''})
-        s.id = find_key(r, 'documentId') or find_key(r, 'document_id')
-        s.plan = [('TITLE', c['title']), ('NORMAL', c['subtitle'])] + c['how']
+        if not s.id:
+            r = s.call('GOOGLEDOCS_CREATE_DOCUMENT_MARKDOWN', {'title': c['title'], 'markdown_text': ''})
+            s.id = find_key(r, 'documentId') or find_key(r, 'document_id')
+            if hasattr(s, '_state_path'): s._save([])            # the doc exists from here on: a rerun reuses it
+        s.plan = [('TITLE', c['title']), ('NORMAL', c['subtitle']), ('NORMAL', progress_line([{'id': r['id'], 'decision': 'Unanswered'} for r in s.rows]))] + c['how']
         for (letter, head, sent, hdr, w) in c['parts']:
             s.plan += [('H1', head), ('NORMAL', sent), ('table', (len(s.by_part[letter]) + 1, len(hdr)))]
         s.plan += [('H1', 'What the check found clean'), ('NORMAL', 'These need no decision.')] + [('CLEAN', x) for x in c['clean']]
@@ -252,10 +299,11 @@ class Builder:
         M = s.heading_ids(tabs['t.0']['documentTab']['body']['content'])
         E = s.heading_ids(tabs[s.etab]['documentTab']['body']['content'])
         jm, je = [], []
+        empty = lambda cell: not ''.join(ptext(p) for p in cell['content']).strip()     # a rerun does not link twice
         for rid, (hid, row) in M.items():
-            jm.append((s.cell_start(row['tableCells'][-1]), f'Open {rid}', {'heading': {'id': E[rid][0], 'tabId': s.etab}}))
+            if empty(row['tableCells'][-1]): jm.append((s.cell_start(row['tableCells'][-1]), f'Open {rid}', {'heading': {'id': E[rid][0], 'tabId': s.etab}}))
         for rid, (hid, row) in E.items():
-            je.append((s.cell_start(row['tableCells'][-1]), f'↩ Back to {rid}', {'heading': {'id': M[rid][0], 'tabId': 't.0'}}))
+            if empty(row['tableCells'][-1]): je.append((s.cell_start(row['tableCells'][-1]), f'↩ Back to {rid}', {'heading': {'id': M[rid][0], 'tabId': 't.0'}}))
         hdr = []
         for t in s.tables(tabs['t.0']['documentTab']['body']['content']):
             c = t['table']['tableRows'][0]['tableCells'][-1]
