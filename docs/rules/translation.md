@@ -118,11 +118,11 @@ The rules for the English: the translation of Ibn Ezra, the verse band, God's na
 **Why.** Our gloss can contradict his definition, as "onyx" did. *Rulings 19, 20.*
 
 ### 16. "Its parallel", not "its brother"
-**Rule.** When Ibn Ezra calls a word or form the "brother" of another (אָחִיו) — its pair, its counterpart, the word that works the same way — the English says "its parallel" or "the parallel of". A real brother stays "brother".
+**Rule.** When Ibn Ezra calls a word or form the "brother" of another (אָחִיו) — its pair, its counterpart, the word that works the same way — the English says "its parallel" or "the parallel of". A real brother stays "brother". One place reads otherwise: at Bereshit 3:18, where the root stands alone because its doubled half is missing, it is "its double".
 
 **Example.** Toledot 25:22: not "its brother is …" but "its parallel is …"; not "X is the brother of Y" but "X is the parallel of Y". A literal brother, such as Jesse's sons mentioned at Bereshit 1:16, stays.
 
-**Why.** "You said 'it's brother', it should be it's parallel, it doesn't literally mean brother here." *Ruling 21.*
+**Why.** "You said 'it's brother', it should be it's parallel, it doesn't literally mean brother here." *Rulings 21, 106.*
 
 ### 17. Grammar terms
 **Rule.** Every grammar term is translated by the glossary in **05 Grammar**, the same way every time.

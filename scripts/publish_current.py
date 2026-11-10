@@ -112,7 +112,8 @@ def main():
         if not why:
             expected_first = p['last_page'] + 1
             continue
-        content = bool(p.get('built_hash')) and h != p['built_hash']   # a real change (not the first fingerprint)
+        # a real change (not the first fingerprint; finalize-parasha clears built_hash and sets the edition itself)
+        content = bool(p.get('built_hash')) and h != p['built_hash']
         if content:
             p['edition'] = TODAY
             if stage.stage(p) == 'final':
@@ -147,6 +148,13 @@ def main():
                       + f"; stage {p['stage']}; {stage.edition_text(p) or 'no edition date'} -> {f}/{out}")
         expected_first = last + 1
     book['next_first_page'] = book['parashot'][-1]['last_page'] + 1
+    # A run stopped after the builds (a booklet, the front matter) must not lose the steps after them: the parashot
+    # rebuilt are kept in book.json "publish_pending" until the run ends, and the next run picks them up.
+    pending = set(book.get('publish_pending', [])) | {p['folder'] for p in rebuilt}
+    if pending:
+        rebuilt = [p for p in book['parashot'] if p['folder'] in pending]
+        published_changed = published_changed or any(stage.published(p) for p in rebuilt)
+        book['publish_pending'] = sorted(pending)
     json.dump(book, open('book.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     open('book.json', 'a').write('\n')
 
@@ -157,7 +165,8 @@ def main():
         return
     pub = [p for p in rebuilt if stage.published(p)]
     for p in pub:   # booklet page references come from this build's rep.json
-        if os.path.exists(f"insights/Ibn Ezra on Parashat {p['parasha']} - Key Insights.pdf"):
+        if os.path.exists(f"insights/Ibn Ezra on Parashat {p['parasha']} - Key Insights.pdf") or \
+                f"'{p['parasha']}':" in open('insights/source.py', encoding='utf-8').read():   # a new final parasha's first booklet
             run([PY, 'insights/booklet.py', p['parasha']])
             report.append(f"{p['parasha']}: Key Insights booklet rebuilt")
     if published_changed or front_changed:
@@ -172,6 +181,9 @@ def main():
         o = run([PY, 'scripts/publish_pdfs.py'])
         report.append('front matter, parts export, glossary and full book rebuilt: ' + o.strip().splitlines()[-1][:160])
         book['front_hash'] = fh
+        book.pop('publish_pending', None)
+        json.dump(book, open('book.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1); open('book.json', 'a').write('\n')
+    if book.pop('publish_pending', None) is not None:
         json.dump(book, open('book.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1); open('book.json', 'a').write('\n')
     bad = []
     for p in rebuilt:
