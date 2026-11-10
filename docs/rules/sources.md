@@ -1,20 +1,79 @@
-# House rules — Sources and access, Deliverables
+# Sources, accounts and delivery
 
-Part of commentary-house-rules (the core is the skill itself). Moved here word for word on 27 Oct 2026; change a rule here and in the core line that points to it.
+Where the texts come from, which accounts are used, and how drafts, final PDFs and these documents reach you. Each rule gives the rule, an example and the reason; the numbers ("Ruling 78") are entries in **03 Rulings**. The last part, "For Claude", has the exact accounts, endpoints and commands.
 
-## Sources and access
-- Google files (review docs, sheets, uploads) are always created and saved in David's personal account, davross846@gmail.com. Never use filmgoingpro@gmail.com unless he says so; it is only for the Going Pro film project. Use the Composio Google connections with the davross846 account (googledocs_spinet-dirk, googledrive_pulse-dwang; alias david-personal); to trash a doc use GOOGLEDRIVE_TRASH_FILE with account googledrive_pulse-dwang. GitHub through Composio uses the default account (no account argument).
-- GitHub backup: the private repo davidross01/ibn-ezra-commentary (see commentary-book-build).
-- Sefaria: use the Sefaria MCP tool (the shell can't reach sefaria.org). A whole book comes back in one call (`/api/v3/texts/<Book>?version=hebrew&return_format=text_only`); the large result is saved to a file for parsing. For the English of a commentary, fetch a verse or chapter at a time (`/api/v3/texts/Ibn_Ezra_on_Genesis.<chapter>.<verse>?version=english`); comments come back as a list per verse, with footnotes inside <i class="footnote"> tags. Ramban/Radak passages that discuss Ibn Ezra are kept in data/ramban_on_ie.json and data/radak_on_ie.json. Rashbam: `/api/v3/texts/Rashbam_on_Genesis.<chapters>?version=hebrew&return_format=text_only`. Onkelos: `/api/v3/texts/Onkelos_Genesis.<chapters>?version=hebrew|Targum Onkelos, vocalized according to the Yemenite Taj &return_format=text_only` (the version title ends with a space). Searching Sefaria needs POST /api/search-wrapper (GET is refused).
-- Rashi, Talmud and Midrash comparisons in the notes are checked on Sefaria and cited (e.g. Bereshit Rabbah 19:8).
-- The review doc gets large (about 2–3 MB through the API once it has many links and chips). **Never read a whole review doc into the conversation to get the answers**: run `read_answers('<key>')` from scripts/workbench/wb.py in the Composio workbench (load line at the top of wb.py). It reads the doc there, keeps only ID / Decision chip / Your note, saves `<rows file>` → `answers.json` to GitHub and prints a short summary; then `git pull` and read the JSON. The rows' own text (Where, Now, Alternative) is already in the repo's rows file. If David's phone can't open the doc, start a new, smaller doc for the next round (see "One review document per parasha").
-- David's "beginners_guide_to_diqduq.docx" (Drive) is a 32-lesson workbook with a glossary (Appendix B) and Ibn Ezra quotations (1:1, 11:1, 22:1). Its pointing of Ibn Ezra is "vowels added" and its letters sometimes differ from Sefaria, so it is not a witness for the vowels; it is useful for plain-word definitions and for later parashot.
+## Accounts and sources
 
-## Deliverables
-- Draft PDFs are named "<Commentator> <Parasha> - draft N.pdf" (the last one "- final.pdf", with "Draft for review" removed from the title page) and sent with SendUserFile, with the page count and what changed in one or two lines. They are sent when David asks for one, or after he has answered the review and asked to apply it, or when he asks for a layout fix; draft 1 of a new parasha goes out together with its review list.
-- When a parasha becomes final: run `python3 scripts/export_parts.py` (the five parts as separate files), rebuild its Key Insights booklet (`python3 insights/booklet.py <Parasha>`; the davar Torah's quoted English in insights/davar.py must match the book, so change it with the book) and `python3 scripts/publish_pdfs.py` (full book), since the booklet's page references come from the final build.
-- **Drive folder: no full book; parasha files numbered in Torah order** (David, 29 Oct 2026: "The full book is at the upload limit - dont upload to drive then just have in each parasha, but put 01 PARASHA_NAME to make it in order"). The full book is still built (`book/`, in GitHub) but not uploaded. In "03 Parashot" each final parasha is `NN <Parasha>.pdf` and in "04 Key Insights" `NN <Parasha> - Key Insights.pdf`, NN = its place in book.json (01 Bereshit, 02 Noach, ... 05 Chayei Sarah). `refresh_drive()` (scripts/workbench/wb.py) does this and renames older names in place, so links stay.
+### 1. Google files only in your own account
+**Rule.** Every Google file of the series (review docs, sheets, uploads, these documents) is created and kept in your personal account, davross846@gmail.com — never the Going Pro film account (filmgoingpro@gmail.com) unless you say so.
 
+**Why.** The Going Pro account is only for the film project. *Ruling 78.*
 
-- **Automatic checks on GitHub** (David, 30 Oct 2026): every push runs `scripts/check_all.py <parasha> --ci` for each parasha (.github/workflows/checks.yml). A red X on a commit means a new hit that was not read and accepted, or a script that broke; fix or `--accept` before going on. In CI the layout and pages checks are skipped (no build there) and Ideas are listed, not failed.
-- **Releases for finished PDFs** (David, 30 Oct 2026): each finished edition (parasha PDFs, booklets, front matter, full book) is published as a GitHub Release, tagged by date. This session cannot create Releases (GitHub refuses it from here and through Composio), so David creates it on github.com → Releases → "Draft a new release", with the files listed by finalize-parasha; the first is "editions-2026-10-29" (the edition before the audit).
+### 2. The texts come from Sefaria, and the comparisons are checked there
+**Rule.** The verses, Ibn Ezra's Hebrew, the other commentators and Onkelos are taken from Sefaria, and every Rashi, Talmud and Midrash comparison in the notes is checked there and cited (the notes never say so: **07 Notes**, rule 15). The project is backed up in your private GitHub repository.
+
+**Example.** "Bereshit Rabbah 19:8".
+
+**Why.** One source that can be checked, with its licence credited in the front matter.
+
+### 3. Your grammar workbook is a help, not a witness
+**Rule.** Your "beginners_guide_to_diqduq.docx" (a 32-lesson workbook with a glossary and Ibn Ezra quotations) is used for plain-word definitions, not as a witness for the vowels: its vowels of Ibn Ezra were added and its letters sometimes differ from Sefaria.
+
+**Why.** It explains grammar well, but it is not a source text.
+
+## Drafts and finished PDFs
+
+### 4. Drafts: when they are sent and what they are called
+**Rule.** A draft is named "Ibn Ezra <Parasha> - draft N.pdf" (the last one "- final.pdf", with "Draft for review" removed from its title page). It is sent when you ask for one, after you have answered a review and asked to apply it, or when you ask for a layout fix; draft 1 of a new parasha goes out together with its review list. Each draft comes with its page count and what changed, in a line or two, and goes into the Drive folder ("05 Drafts").
+
+**Why.** You see every draft, and only when there is something to decide or to read.
+
+### 5. The Drive folder: no full book; parashot numbered in order
+**Rule.** The full book is still built (on GitHub) but not put on Drive. In "03 Parashot" each final parasha is "NN <Parasha>.pdf", and in "04 Key Insights" "NN <Parasha> - Key Insights.pdf", NN being its place in the Torah. Files are replaced in place, so their links stay the same.
+
+**Example.** 01 Bereshit, 02 Noach, … 05 Chayei Sarah.
+
+**Why.** "The full book is at the upload limit — don't upload to Drive then, just have in each parasha, but put 01 PARASHA_NAME to make it in order." *Ruling 79.*
+
+### 6. How the book is made, kept in Drive and kept current
+**Rule.** These documents — Start here, the handoff, the README, the rulings, the rules, the core skill and the history — are Google Docs in the private, numbered folder "-03 How it is made" inside "Ibn Ezra on the Torah - PDFs" (limited access, so the book's public link does not open them). They are copies of the files in the repository:
+- they are **refreshed in place**, so their links never change, whenever a rule or a document changes, in the same session;
+- an out-of-date copy is **flagged** by the checks;
+- a **comment you leave** on one of them is read at the start of the next session and taken as a ruling (or answered, if it is a question), and the reply is left under your comment;
+- a **weekly scheduled task** refreshes them and sends you a short note on what changed that week.
+
+A copy is never refreshed while it has an open comment of yours, so the comment keeps its place.
+
+**Why.** You can read and check the rules on any device, and the copy never drifts from the rules Claude follows. *Ruling 82.*
+
+### 7. Automatic checks on every push
+**Rule.** Every change pushed to GitHub runs all the checks of every parasha. A red X on a change means a new problem not yet read and accepted, or a broken script; it is fixed (or the hit accepted) in the same session, before going on.
+
+**Why.** Mistakes are caught the moment they are made. *Ruling 80.*
+
+### 8. Each finished edition is a GitHub Release
+**Rule.** Each finished edition (parasha PDFs, booklets, front matter, full book) is published as a GitHub Release, tagged by date. Claude cannot create Releases from here, so you create it on github.com (Releases → "Draft a new release") with the files listed by Claude.
+
+**Example.** The first is "editions-2026-10-29", the edition before the audit.
+
+**Why.** A fixed copy of every edition. *Ruling 81.*
+
+### 9. When a parasha becomes final
+**Rule.** Making a parasha final is one chain, all at once: the final PDF, its parts exported as separate files, its Key Insights booklet rebuilt (the booklet's page references come from the final build), the full book rebuilt, the key to terms and the front matter brought up to date, the Drive folder refreshed, and its review docs archived.
+
+**Why.** Every file that depends on the final pages is made from the same final build.
+
+---
+
+## For Claude: how it is done and checked
+
+- **Rule 1:** use the Composio Google connections with the davross846 account: googledocs `googledocs_spinet-dirk`, googledrive `googledrive_pulse-dwang` (alias david-personal), googlesheets `david-personal`. To trash a file, GOOGLEDRIVE_TRASH_FILE with account googledrive_pulse-dwang. GitHub through Composio uses the default account (no account argument). Limited access on a folder (inheritedPermissionsDisabled) is set only with the Google Drive connector's update_file / create_file; the Composio tools cannot set it.
+- **Rule 2 (Sefaria):** use the Sefaria MCP tool (the shell can't reach sefaria.org). A whole book in one call: `/api/v3/texts/<Book>?version=hebrew&return_format=text_only`; save the large result to a file for parsing. A commentary's English a verse or chapter at a time: `/api/v3/texts/Ibn_Ezra_on_Genesis.<chapter>.<verse>?version=english` (comments come back as a list per verse, footnotes inside <i class="footnote">). Rashbam: `/api/v3/texts/Rashbam_on_Genesis.<chapters>?version=hebrew&return_format=text_only`. Onkelos: `/api/v3/texts/Onkelos_Genesis.<chapters>?version=hebrew|Targum Onkelos, vocalized according to the Yemenite Taj &return_format=text_only` (the version title ends with a space). Searching needs POST /api/search-wrapper (GET is refused). GitHub: the private repo davidross01/ibn-ezra-commentary (commentary-book-build).
+- **Rule 3:** the workbook is in David's Drive; its Appendix B is the glossary; quotations at 1:1, 11:1, 22:1. Useful for later parashot.
+- **Reading a review doc:** it gets large (about 2–3 MB through the API). Never read a whole review doc into the conversation: run `read_answers('<key>')` from scripts/workbench/wb.py in the Composio workbench (load line at the top of wb.py). It keeps only ID / Decision / Your note, saves `<rows file>` → answers.json to GitHub and prints a short summary; then `git pull` and read the JSON. The rows' own text is in the repo's rows file. If David's phone can't open a doc, start a new, smaller doc for the next round.
+- **Rule 4:** send drafts with SendUserFile; then `refresh_drive()` after the push puts them in "05 Drafts".
+- **Rule 5:** `refresh_drive()` (scripts/workbench/wb.py) does the numbering and renames older names in place, so links stay. The booklets are PDFs only; no Google Doc copies.
+- **Rule 6:** the folder is id 1ALbmTB3lrzR4Md2y_1mLeXAremu0kZMP. `docs/handbook.json` lists every document (number, title, source, Google Doc id, and the checksums of the last build and the last refresh). `python3 -I scripts/handbook.py build` makes the HTML copies in docs/handbook/ (the Start here copy with the live status from series_status.py); in the workbench `sync_handbook()` replaces each changed doc's content in place (same id, same link), skips a doc with an open comment, and records the refresh; `handbook_comments()` lists David's open comments. `python3 -I scripts/handbook.py --check` lists the copies out of date (series_status prints it; CI warns). The weekly scheduled task is "Ibn Ezra — weekly handbook refresh". The steps are in docs/HANDOFF.md, "Keeping the documents current".
+- **Rule 7:** .github/workflows/checks.yml runs `scripts/check_all.py <parasha> --ci` for each parasha, plus `scripts/rulings.py --check`, `scripts/cite_check.py` and the handbook check (a warning only). In CI the layout and pages checks are skipped (no build there) and Ideas are listed, not failed.
+- **Rule 8:** the files to attach are listed by finalize-parasha.
+- **Rule 9:** the finalize-parasha skill: `python3 scripts/export_parts.py` (the five parts as separate files), `python3 insights/booklet.py <Parasha>` (the davar Torah's quoted English in insights/davar.py must match the book, so change it with the book), `review_round/key_add_parasha.py`, `python3 scripts/publish_pdfs.py --rebuild` (full book and glossary), `refresh_drive()`, archiving.

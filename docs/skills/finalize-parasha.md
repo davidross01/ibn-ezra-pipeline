@@ -58,7 +58,7 @@ Check: 10 pages (i–x) and the new parasha in the contents with its first page 
 - The full book stays in GitHub (and is sent in chat); it is not uploaded to Drive (David, 29 Oct 2026).
 
 ## 7. Back up
-README History line (what changed last, pages, export counts, full-book pages, next parasha's first page), commit with the session's attribution lines, push.
+A line in docs/HISTORY.md under "The latest work" (what changed last, pages, export counts, full-book pages, next parasha's first page), commit with the session's attribution lines, push. Then `python3 -I scripts/handbook.py build`, push, and `sync_handbook()` in the workbench, so the documents in Drive (00 Start here, 13 History) show the final.
 
 ## 8. Drive folder
 In the workbench: `refresh_drive(dry=True)`, then `refresh_drive()` (wb.py; it loads from GitHub main, so push first). It puts the parasha's PDF into "03 Parashot" as `NN <Parasha>.pdf` and its booklet into "04 Key Insights" as `NN <Parasha> - Key Insights.pdf` (NN = place in book.json: 01 Bereshit … 05 Chayei Sarah), replaces the front matter in place, renames older names in place (links stay), trashes the parasha's old draft from "05 Drafts" and any full book. It prints one line per change and verifies sizes. A single file over 5 MB cannot upload: tell David.

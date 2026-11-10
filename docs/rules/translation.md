@@ -1,25 +1,142 @@
-# House rules — Translation, Names and transliteration
+# Translation and names
 
-Part of commentary-house-rules (the core is the skill itself). Moved here word for word on 27 Oct 2026; change a rule here and in the core line that points to it.
+The rules for the English: the translation of Ibn Ezra, the verse band, God's name, names of places and people, and Hebrew letters and words inside the English. Each rule gives the rule, an example and the reason. The numbers at the end of a rule ("Rulings 3, 4") are the entries in **03 Rulings**, which say when you decided it and in what words. The second part, "For Claude", says how each rule is carried out and checked.
 
-## Translation
-- The translation is David's own. Never present another translation's wording as his.
-- **The Chumash translation must agree with the commentary.** (David's rule, Oct 2026.) The Torah translation in the verse band follows the commentator's reading of the verse, not a standard Bible translation (e.g. at Gen 1:22 "be fruitful and multiply" is a blessing, as Ibn Ezra reads it). Above all, where the commentator says something about a particular word or phrase (its meaning, its grammar, its tense, who is speaking, what it refers to, or that a word is implied or extra), the verse band must render that word the way he explains it, so a reader who looks up from the comment to the verse sees the same thing. Check his comments on the NEXT verse too: he sometimes explains a word of one verse inside the comment on the following verse (e.g. יָמִים = a full year, 4:3, explained at 4:4), and sometimes a verse inside the comment on an earlier one (1:28 in the comment on 1:26; 3:24 in the comment on 3:23). If he gives two readings, follow the one he prefers; if he gives no preference, follow the first and say so in the note. If his reading makes the English awkward, keep his reading and add a few words in square brackets rather than going back to a standard rendering. Before each draft, go through every verse with all the English comments on it and on the verses next to it (a dump of verse + comments per verse is the quickest way) and check the verse band against each comment about wording; the notes often already state his reading ("does not close verse 7; it opens verse 8"), so read them too. A mismatch in a draft David has already seen is a review row (Now / Proposal), not a silent change; in Bereshit these went into Part E of Review List 3 ("Verse against comment"). When David's own wording for a verse conflicts with the commentator's reading, ask him which to follow (in Bereshit he chose to follow Ibn Ezra).
-- **Ibn Ezra quoting a verse follows that verse's translation** (row D1, Noach Review List 1): where the verse band renders a word by Ibn Ezra's reading (3:5 "like angels"), his quotations of that verse elsewhere use the same wording (3:22), with a note pointing back to where he explains it.
-- Check every passage against the standard published translation (Ibn Ezra: Strickman–Silver) and its notes. **No "Uncertain." labels and no hedges in the book** (David, 25 Oct 2026: they make it look less professional). Where the reading is doubtful, state the likeliest reading plainly in the note and keep the doubt in the Editorial record (Google Doc "Ibn Ezra on the Torah — Editorial record (outside the book)", id 1_uiuWQXAHtD6pEtRZ-9ebwx1jV5wmIw3k_XXfzZhmVk; repo review_grammar/all/editorial_record.*); a doubt David should decide goes to the review list as a row, not into the note. The preface says once that where the text is unclear the note gives the likeliest reading. **One exception: “it seems”** (David, 9 Nov 2026: “Say it seems”, settling the clash with notes.md): where a note gives Claude's own reasoning, not a source's (a link between Ibn Ezra and Rambam, what follows from a view), it says “it seems”; a hedge on the reading of the text stays out. **Never name Strickman, Silver, Weiser or Krinsky (or "Sefaria's English edition") in the notes** (David, Oct 2026): a point taken from them is kept without the name ("On one reading, …", "it may mean …", "a manuscript reads …"). If one of them seems very relevant to name, ask David first.
-- Literal by default. Where a passage is obscure, translate it literally and explain it in the note. Use an interpretive rendering only when David decides so.
-- Every grammar term is translated by the glossary below (from David's grammar sheet). See "Grammar terms".
-- **God's name: always "Hashem".** Wherever the Hebrew has הַשֵּׁם ("the Name"), write Hashem in small caps (H{sci}ashem{/sci} in the model), never "the Name", "the Lord" or "God" in its place. This applies to the English commentary, the notes, and the front and back matter. David decided this at 3:1, Oct 2026. Leave "Name" only where it is not a rendering of הַשֵּׁם: a quoted term such as "the four-letter Name" or "the Honored and Awesome Name", and Rashi's "a letter of the Name". Also "the secret of the Name" (סוד השם), where Ibn Ezra means God's own name, as in "for My Name is within him" (Exodus 23:21): Bereshit 1:1 and the notes on 1:1 and 1:26 (Audit 1 row B2, approved by David 30 Oct 2026). Before each draft, search the English for "the Name" and read every hit (scripts/check_book.py does this).
-- **The Name in Hebrew inside the English is ה׳** (with geresh), never ד' (David, 27 Oct 2026): in lemmas and quotations in the English comments and notes, and for the Targum's יְיָ. The Hebrew commentary keeps Sefaria's ד', since its letters are Sefaria's. Before each draft, check that no ד' stands inside {h}/{hb} in the English.
-- **Except in the Chumash where the Name is read as Elohim** (David, Lech Lecha Review List 1 row B6, 25 Oct 2026): where the four-letter Name in the verse is pointed with the vowels of אֱלֹהִים and read "Elohim" (אֲדֹנָי יֱהֹוִה), the verse band writes "Elohim": Lech Lecha 15:2 and 15:8 read "My Lord, Elohim". Whenever you think a verse should be rendered this way, flag it to David as a review row before the draft is final. check_book.py's "verse has the Name but the English lacks Hashem" hit is then expected at those verses.
-- **Place names are transliterated, not translated** (David, 25 Oct 2026, when he saw "Ur of the Chaldees" for אוּר כַּשְׂדִּים: it is Ur Kasdim). Write the Hebrew name in Sephardi transliteration, with a doubled letter for a dagesh as in "Shabbat", in the verse band, the English commentary, the notes and the Key Insights booklets, one spelling everywhere. Applied to Bereshit, Noach and Lech Lecha on 25 Oct 2026 (review_round/apply_places.py, its MAP is the list): Ur Kasdim, Mitzrayim, Kena’an, Charan (the place חָרָן; the person הָרָן stays Haran), Dammesek, Yarden, Chevron, Sedom, Amorah, Tzo’ar, Shin’ar, Shalem, Beit-El, the Perat, the Yam HaMelach, Emek HaMelech, Bavel, Akkad, Kalneh, Rechovot-Ir, Kalach, Tzidon, Azzah, Tzvoyim, Sefar, Asshur, Chiddekel, Kush and Chavilah (the lands at Bereshit 2:11–13), Eilam (the land, Lech Lecha 14). Yerushalayim, not Jerusalem (David, 28 Oct 2026, Vayera Review List 1 E2, for the whole book: Bereshit 2:11, Lech Lecha 12:9, 14:13, 14:18, Vayera 18:26, 22:2). Names already transliterated stay (Eden, Nod, Pishon, Gihon, Mamre, Negev, Shechem, Kadesh, Erech, Resen, Gerar, Admah, Lasha, Mesha, Nineveh). Names of people (Cush, Havilah, Elam, Mizraim in the table of nations) and of peoples (Canaanite, Egyptian, Amorite) are not changed; ask David before changing them. Where a note explains a name ("Mitzrayim (Egypt)"), the English gloss may stay. **David looks over the place names in every review**: each parasha's review list gets a Place names row listing every place name in English form with its verses, Now and the proposed transliteration, so he decides before the draft is final. The rule is not applied silently to a draft he has already seen.
-- **Letters and vowels in the English.** (David's rule, Oct 2026.) When the English refers to a Hebrew letter, write the letter itself ({h}א{/h}, {h}ה{/h}, {h}ו{/h}), not "alef", "heh", "vav"; a plural is "two {h}י{/h} letters". When it refers to a vowel, write the name and show the sign **on an alef**: "kamatz (אָ)", "patach (אַ)", "tzere (אֵ)", "segol (אֶ)", "sheva (אְ)", "holam (אֹ)" (David, Oct 2026: always an alef, not a dotted circle ◌, which does not print reliably). The dagesh, which is not a vowel, is shown in a ב (בּ) and the mappik in a final ה (הּ) (David confirmed, row A2 of Review List 3). In the model the sign is written {v}אָ{/v} (in the foot strip <span class="vs" dir="rtl">אָ</span>). Every mention of a vowel name gets its sign, including "chataf patach (אֲ)" and Ibn Ezra's "small patach (segol, אֶ)". Root types such as "pe-alef" are written with the letters ({h}פ״א{/h}); but פ״א can also be the NAME of the letter פ ("the soft פ"), so read each one. Before each draft, search the English for the letter and vowel names and convert them (the check's hits on "Shin’ar" and "Heth" are names, not letters).
-- **Words Ibn Ezra defines himself: no translation of your own.** (David's rule, Oct 2026.) When Ibn Ezra tells the reader what a word means, show the Hebrew word alone ({h}…{/h}) and let his definition be the meaning; do not add an English gloss in {g}…{/g}. The case that raised it: at 2:12 the book glossed שֹּׁהַם as "onyx", which is wrong, and Ibn Ezra defines it himself ("a precious white stone"). The same goes for בְּדֹלַח. Never put a guessed identification (a stone, plant or animal) into a gloss; if the verse band needs a word, leave it transliterated (shoham, bedolach, kofer), as the verse band does. Before each draft, check each glossed Hebrew word followed by "is", "means" or "are called" (scripts/check_book.py lists them), and ask whether Ibn Ezra is defining it. In Bereshit David removed the glosses at 1:1 שָׁמַיִם, 1:20 עַל פְּנֵי and 2:4 עֲשׂוֹת, and kept 1:1 אֱלֹהִים ("judges") and 4:7 שְׂאֵת ("lifting", where he weighs two readings rather than defining) (row A3 of Review List 3). Apply the rule from the first draft of later parashot; where he weighs two readings instead of defining the word, a gloss may stay.
-- **אָחִיו said of a word is “its parallel”** (David, 9 Nov 2026, on Toledot 25:22: “you said 'it's brother' it should be it's parallel, it doesn't literally mean brother here. Make sure to note this correction for other places.”). When Ibn Ezra calls a word or form the “brother” of another — its pair, its counterpart, the word that works the same way (וְאָחִיו, “its brother is …”, “X is the brother of Y”) — the English is “its parallel” / “the parallel of”, never “brother”. A real brother stays “brother”. check_all “Its parallel” flags “its brother”, “their brothers” and “is the brother of” in the commentary and notes; a literal one (Jesse’s sons at Bereshit 1:16) is accepted once read. The places already in the book went to David as rows (Consistency Review 1, Part B).
+## The translation itself
 
-## Names and transliteration
-- Sephardi transliteration (Shabbat, Bereshit, toledot).
-- **Place names are transliterated too** (see "Place names are transliterated, not translated" under Translation): Ur Kasdim, not "Ur of the Chaldees". The preface says so.
-- God's name is Hashem in small caps, always (see "Translation"; in the verse band, Elohim where the Name is read Elohim).
-- **How far the audit goes in the verse and the translation** (David's answers to Audit 1, 30 Oct 2026, confirmed the same day: “Yes, that's the policy”). Brackets in the verse band only where Ibn Ezra explains how a word of **that verse** works — its sense or what it does there: 1:4 “separated … [by giving them names]”, 1:14 “set times [to mark moments and hours]” (Approved). No identifications (“the heavens [the firmament]”, “in the image of God [an angel]”: Keep), no word swaps across the book (“expanse” for “firmament”: Keep), no reading carried over from his comment on another verse (1:20 from 1:31: Keep). Rows on the English commentary only for mistranslations (1:14, 1:26: Approved) and inconsistencies (1:16 “luminary”: Approved), not to smooth English that is already clear (1:18: Keep). How Hashem prints stays as it is (E1, Keep).
-- **Bracket rows from now on: only clear cases** (David, 1 Nov 2026, after Audit 2, where he kept 8 of 9 bracket rows and approved only 2:14 “[toward the] east of Asshur”). In audits and new drafts, raise a bracket in the verse band only where the verse as it stands contradicts Ibn Ezra’s reading (the kind of 2:10 “goes out” against his “used to water”) or where his reading cannot be seen from the English at all; a word he only explains further stays in the note.
+### 1. The translation is yours
+**Rule.** The translation is David's own. Another translation's wording is never presented as his.
+
+**Why.** The book is an original translation; borrowing a sentence would make it someone else's.
+
+### 2. Literal by default
+**Rule.** Translate literally. Where a passage is obscure, keep the literal translation and explain it in the note. An interpretive rendering is used only when you decide so.
+
+**Example.** A hard phrase of Ibn Ezra stays word for word in the English commentary; the note underneath says what it means.
+
+**Why.** The reader sees what Ibn Ezra actually wrote, and the explanation is kept apart from it.
+
+### 3. Checked against the standard translation, never named
+**Rule.** Every passage is checked against the standard published translation of Ibn Ezra (Strickman–Silver) and its notes. The notes never name Strickman, Silver, Weiser or Krinsky, or "Sefaria's English edition". A point taken from them is kept without the name. If naming one seems very important, ask first.
+
+**Example.** Not "Strickman suggests a manuscript reads …" but "a manuscript reads …" or "on one reading, …".
+
+**Why.** The check catches mistakes; the notes are the book's own voice, and the translators are credited once, in "How this edition was made". *Ruling 3.*
+
+### 4. No "Uncertain" labels and no hedges, except "it seems"
+**Rule.** The book has no "Uncertain." labels and no hedges ("probably", "may", "seems"). Where the reading is doubtful, the note states the likeliest reading plainly. The doubt itself goes into the Editorial record (a Google Doc outside the book), and a doubt you should decide becomes a review row. The preface says once that where the text is unclear, the note gives the likeliest reading.
+
+**One exception.** Where a note gives Claude's own reasoning rather than a source's (a link between Ibn Ezra and Rambam, or what follows from a view), it says "it seems". A hedge on how to read the text itself still stays out.
+
+**Example.** Not "Uncertain. This may mean the firmament." but "This means the firmament." And, for reasoning: "It seems Ibn Ezra has the same idea in mind as Rambam."
+
+**Why.** Labels and hedges make the book look less professional; "it seems" is honest about what is Claude's inference and what is a source. *Rulings 4, 5.*
+
+## The verse band
+
+### 5. The verse band follows Ibn Ezra's reading
+**Rule.** The English of the Chumash in the verse band follows how Ibn Ezra reads the verse, not a standard Bible translation. Above all, where he says something about a particular word (its meaning, grammar, tense, who is speaking, what it refers to, or that a word is implied or extra), the verse band renders that word his way. If he gives two readings, it follows the one he prefers; if he prefers neither, the first, and the note says so. If his reading makes the English awkward, keep his reading and add a few words in [square brackets] rather than going back to a standard rendering. When your own wording for a verse conflicts with his reading, Claude asks which to follow.
+
+**Example.** At Bereshit 1:22, "be fruitful and multiply" is a blessing, as Ibn Ezra reads it. At 4:3, יָמִים means a full year — explained in his comment on 4:4, so the next verse's comments are checked too.
+
+**Why.** A reader who looks up from the comment to the verse should see the same thing Ibn Ezra is explaining. In Bereshit you chose to follow Ibn Ezra over your own wording. *Rulings 1, 2.*
+
+### 6. Ibn Ezra quoting a verse uses that verse's translation
+**Rule.** Where the verse band renders a word by Ibn Ezra's reading, his quotations of that verse elsewhere use the same wording, with a note pointing back to where he explains it.
+
+**Example.** Bereshit 3:5 reads "like angels"; when he quotes it at 3:22, the English says "like angels" too, and the note points to 3:5.
+
+**Why.** The same words of Scripture should not appear in two different Englishes in one book. *Ruling 6.*
+
+### 7. How far the audit goes: brackets in the verse band
+**Rule.** Brackets are added in the verse band only where Ibn Ezra explains how a word of **that verse** works — its sense, or what it does there. No identifications, no word swaps across the book, and no reading carried over from his comment on another verse. In the English commentary, review rows are raised only for mistranslations and inconsistencies, not to smooth English that is already clear. How Hashem prints stays as it is.
+
+**Example.** Approved: 1:4 "separated … [by giving them names]", 1:14 "set times [to mark moments and hours]". Kept as they were: "the heavens [the firmament]" and "in the image of God [an angel]" (identifications), "expanse" for "firmament" everywhere (a word swap), 1:20 read from his comment on 1:31. In the English commentary: approved for mistranslations at 1:14 and 1:26 and for an inconsistency at 1:16 ("luminary"); 1:18, already clear, kept.
+
+**Why.** You set this policy when answering Audit 1: "Yes, that's the policy". *Ruling 7.*
+
+### 8. Bracket rows only for clear cases
+**Rule.** A bracket in the verse band is proposed only where the verse as it stands contradicts Ibn Ezra's reading, or where his reading cannot be seen from the English at all. A word he only explains further stays in the note.
+
+**Example.** Raised: 2:10 "goes out", against his "used to water". Approved in Audit 2: 2:14 "[toward the] east of Asshur" — the only one of nine bracket rows you approved.
+
+**Why.** In Audit 2 you left the verse as it was in 8 of the 9 bracket rows: a word he only explains further belongs in the note. *Ruling 8.*
+
+## God's name
+
+### 9. Hashem for "the Name"
+**Rule.** Wherever the Hebrew has הַשֵּׁם ("the Name"), the English says **Hashem**, in small caps — in the English commentary, the notes, and the front and back matter. Never "the Name", "the Lord" or "God" in its place. "Name" stays only where it does not translate הַשֵּׁם: a quoted term such as "the four-letter Name" or "the Honored and Awesome Name", Rashi's "a letter of the Name", and "the secret of the Name" (סוד השם) where Ibn Ezra means God's own name.
+
+**Example.** Where Ibn Ezra writes הַשֵּׁם, the English reads "Hashem", not "the Name". But "the secret of the Name" stays, as in "for My Name is within him" (Exodus 23:21), at Bereshit 1:1 and the notes on 1:1 and 1:26.
+
+**Why.** One form of God's name through the whole book, in the form it is said. *Rulings 9, 10.*
+
+### 10. The Name in Hebrew inside the English is ה׳
+**Rule.** In Hebrew words and quotations inside the English commentary and notes, the Name is written ה׳ (with a geresh), never ד'. The same goes for the Targum's יְיָ. The Hebrew commentary itself keeps Sefaria's ד', because its letters are Sefaria's.
+
+**Why.** One form of the Name in the English part of the page. *Ruling 11.*
+
+### 11. "Elohim" where the Name is read Elohim
+**Rule.** Where the four-letter Name in a verse is pointed with the vowels of אֱלֹהִים and read "Elohim" (אֲדֹנָי יֱהֹוִה), the verse band writes "Elohim". Every new case is put to you as a review row before the draft is final.
+
+**Example.** Lech Lecha 15:2 and 15:8: "My Lord, Elohim".
+
+**Why.** The English follows how the verse is read aloud. *Ruling 12.*
+
+## Names
+
+### 12. Sephardi transliteration
+**Rule.** Hebrew words written in English letters use Sephardi pronunciation.
+
+**Example.** Shabbat, Bereshit, toledot.
+
+**Why.** Your choice from the first review list: "don't make the Ashkenazic transliteration, make them sephardi". *Ruling 13.*
+
+### 13. Place names are transliterated, not translated
+**Rule.** A place name is written as the Hebrew name in Sephardi transliteration, with a doubled letter for a dagesh (as in "Shabbat"), the same spelling everywhere: the verse band, the English commentary, the notes and the Key Insights booklets. Names already written that way stay. Names of people and of peoples are not changed (ask first). Where a note explains a name, an English gloss may stay beside it. The preface says so.
+
+**Example.** Ur Kasdim, not "Ur of the Chaldees". Also Mitzrayim, Kena’an, Charan (the place; the person Haran stays Haran), Dammesek, Yarden, Chevron, Sedom, Amorah, Tzo’ar, Shin’ar, Shalem, Beit-El, the Perat, the Yam HaMelach, Emek HaMelech, Bavel, Akkad, Kalneh, Rechovot-Ir, Kalach, Tzidon, Azzah, Tzvoyim, Sefar, Asshur, Chiddekel, Kush and Chavilah (the lands at Bereshit 2:11–13), Eilam (the land, Lech Lecha 14), and Yerushalayim, not Jerusalem. Already transliterated and unchanged: Eden, Nod, Pishon, Gihon, Mamre, Negev, Shechem, Kadesh, Erech, Resen, Gerar, Admah, Lasha, Mesha, Nineveh. Unchanged as names of people or peoples: Cush, Havilah, Elam and Mizraim in the table of nations; Canaanite, Egyptian, Amorite. With a gloss: "Mitzrayim (Egypt)".
+
+**You look over the place names in every review.** Each parasha's review list has a Place names row listing every place name with its verses, as it stands and as proposed, so you decide before the draft is final. The rule is never applied silently to a draft you have already seen.
+
+**Why.** You saw "Ur of the Chaldees" for אוּר כַּשְׂדִּים and said it is Ur Kasdim. *Rulings 14, 15, 16.*
+
+## Hebrew letters and words inside the English
+
+### 14. Letters and vowels are shown, not spelled out
+**Rule.** When the English refers to a Hebrew letter, it writes the letter itself, not its name; a plural is "two י letters". When it refers to a vowel, it gives the name and shows the sign **on an alef**. The dagesh, which is not a vowel, is shown in a ב (בּ), and the mappik in a final ה (הּ). Every vowel name gets its sign. Root types are written with the letters (פ״א) — but פ״א can also be the name of the letter פ ("the soft פ"), so each one is read.
+
+**Example.** Not "alef" but א; "kamatz (אָ)", "patach (אַ)", "tzere (אֵ)", "segol (אֶ)", "sheva (אְ)", "holam (אֹ)", "chataf patach (אֲ)", and Ibn Ezra's "small patach (segol, אֶ)".
+
+**Why.** The reader sees the actual letter or sign. An alef rather than a dotted circle (◌), because the circle does not print reliably. *Rulings 17, 18.*
+
+### 15. A word Ibn Ezra defines himself gets no translation of ours
+**Rule.** When Ibn Ezra says what a word means, the English shows the Hebrew word alone and lets his definition be the meaning — no English gloss of ours beside it. A guessed identification (a stone, a plant, an animal) is never put into a gloss; where the verse band needs a word, it stays transliterated. Where he weighs two readings instead of defining the word, a gloss may stay.
+
+**Example.** At Bereshit 2:12 the book once glossed שֹּׁהַם as "onyx", which is wrong: Ibn Ezra defines it himself as "a precious white stone". The same for בְּדֹלַח; the verse band says shoham, bedolach, kofer. In Bereshit the glosses were removed at 1:1 שָׁמַיִם, 1:20 עַל פְּנֵי and 2:4 עֲשׂוֹת, and kept at 1:1 אֱלֹהִים ("judges") and 4:7 שְׂאֵת ("lifting", where he weighs two readings).
+
+**Why.** Our gloss can contradict his definition, as "onyx" did. *Rulings 19, 20.*
+
+### 16. "Its parallel", not "its brother"
+**Rule.** When Ibn Ezra calls a word or form the "brother" of another (אָחִיו) — its pair, its counterpart, the word that works the same way — the English says "its parallel" or "the parallel of". A real brother stays "brother".
+
+**Example.** Toledot 25:22: not "its brother is …" but "its parallel is …"; not "X is the brother of Y" but "X is the parallel of Y". A literal brother, such as Jesse's sons mentioned at Bereshit 1:16, stays.
+
+**Why.** "You said 'it's brother', it should be it's parallel, it doesn't literally mean brother here." *Ruling 21.*
+
+### 17. Grammar terms
+**Rule.** Every grammar term is translated by the glossary in **05 Grammar**, the same way every time.
+
+---
+
+## For Claude: how it is done and checked
+
+- **Rule 5, before each draft:** go through every verse with all the English comments on it and on the verses next to it (a dump of verse + comments per verse is quickest) and check the verse band against each comment about wording. He sometimes explains a word of one verse inside the comment on the next (יָמִים, 4:3, at 4:4) or on an earlier one (1:28 in the comment on 1:26; 3:24 in the comment on 3:23). The notes often already state his reading ("does not close verse 7; it opens verse 8"); read them too. A mismatch in a draft David has seen is a review row (Now / Proposal), not a silent change; in Bereshit these were Part E of Review List 3 ("Verse against comment").
+- **Rule 4:** the Editorial record is the Google Doc "Ibn Ezra on the Torah — Editorial record (outside the book)" (id 1_uiuWQXAHtD6pEtRZ-9ebwx1jV5wmIw3k_XXfzZhmVk), made from review_grammar/all/editorial_record.* by review_grammar/all/make_record.py. `python3 -I review_grammar/all/clean.py --check` lists new labels and hedges before each draft (notes.md, rule 11).
+- **Rule 9:** the model writes Hashem as H{sci}ashem{/sci}. Before each draft, search the English for "the Name" and read every hit (scripts/check_book.py does it).
+- **Rule 10:** before each draft, check that no ד' stands inside {h}/{hb} in the English.
+- **Rule 11:** check_book.py's hit "verse has the Name but the English lacks Hashem" is expected at Lech Lecha 15:2 and 15:8.
+- **Rule 13:** Yerushalayim stands at Bereshit 2:11, Lech Lecha 12:9, 14:13, 14:18, Vayera 18:26, 22:2. review_round/apply_places.py (its MAP is the list) applied the place names to Bereshit, Noach and Lech Lecha; the Place names row of Lech Lecha Review List 1 Part F is the model row.
+- **Rule 14:** in the model a letter is {h}א{/h}; a vowel sign {v}אָ{/v}; in the foot strip <span class="vs" dir="rtl">אָ</span>; a root type {h}פ״א{/h}. Before each draft, search the English for letter and vowel names and convert them (the check's hits on "Shin’ar" and "Heth" are names, not letters).
+- **Rule 15:** the Hebrew alone is {h}…{/h}, with no {g}…{/g} gloss. scripts/check_book.py lists every glossed Hebrew word followed by "is", "means" or "are called"; ask of each whether Ibn Ezra is defining it.
+- **Rule 16:** check_all "Its parallel" flags "its brother", "their brothers" and "is the brother of" in the commentary and notes; accept a literal one once read.

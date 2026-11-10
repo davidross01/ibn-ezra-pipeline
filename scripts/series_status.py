@@ -111,7 +111,7 @@ def main():
                               'rows': d.get('rows'), 'checked': d.get('checked'),
                               'link': f"https://docs.google.com/{"spreadsheets" if d.get("kind")=="Google Sheet" else "document"}/d/{d["id"]}/edit" if d.get('id') else None,
                               'answers': answers_of(d)}
-                             for d in docs if d['status'] in ('open', 'answered')]
+                             for d in docs if d['status'].startswith(('open', 'answered'))]
         if '--checks' in sys.argv:
             r['checks'] = check_result(f)
         r['review_notes'] = [d['note'] for d in docs if d.get('note') and d['status'] == 'applied']
@@ -141,7 +141,7 @@ def main():
     rep['other_reviews'] = [{'parasha': d['parasha'], 'list': d['list'], 'title': d.get('title'), 'rows': d.get('rows'), 'checked': d.get('checked'),
                              'link': f"https://docs.google.com/{"spreadsheets" if d.get("kind")=="Google Sheet" else "document"}/d/{d["id"]}/edit",
                              'answers': answers_of(d)}
-                            for d in reg if d['parasha'] not in names and d['status'] in ('open', 'answered')]
+                            for d in reg if d['parasha'] not in names and d['status'].startswith(('open', 'answered'))]
     # applied but not yet archived: listed so a new session need not read review_docs.json (archive only when David says)
     rep['unarchived'] = [{'parasha': d['parasha'], 'title': d.get('title'), 'applied': d.get('applied'),
                           'link': f"https://docs.google.com/{'spreadsheets' if d.get('kind')=='Google Sheet' else 'document'}/d/{d['id']}/edit" if d.get('id') else None}
@@ -181,6 +181,12 @@ def main():
     rep['actions'] = [t for _, t in sorted(acts, key=lambda x: x[0])]
     st = subprocess.run(['git', 'status', '--porcelain'], capture_output=True, text=True).stdout
     rep['uncommitted'] = [l for l in st.splitlines() if '__pycache__' not in l]
+    try:   # the Google Doc copies in "-03 How it is made" (docs/rules/sources.md, rule 6)
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import handbook
+        rep['handbook'] = [f'{t}: {why}' for _, t, why in handbook.stale()]
+    except Exception as e:
+        rep['handbook'] = [f'handbook check failed: {e}']
 
     if '--json' in sys.argv:
         print(json.dumps(rep, ensure_ascii=False, indent=1))
@@ -221,6 +227,9 @@ def main():
     print('\nNEXT:')
     for i, t in enumerate(rep['actions']):
         print(('  -> ' if i == 0 else '     ') + t)
+    print('\nDocuments in Drive ("-03 How it is made"): ' + ('all current' if not rep['handbook'] else f"{len(rep['handbook'])} out of date"))
+    for l in rep['handbook']:
+        print('  ' + l)
     if rep['uncommitted']:
         print(f"\nUncommitted changes ({len(rep['uncommitted'])}):")
         for l in rep['uncommitted'][:20]:

@@ -510,3 +510,99 @@ def sync_reviews(dry=False):
     for x in log:
         print('  ' + x)
     return {'folder': fid, 'changes': log}
+
+
+# ---------------------------------------------------------------- the documents in "-03 How it is made"
+HANDBOOK_FOLDER = '-03 How it is made (handoff, rules, rulings)'
+HANDBOOK_FOLDER_ID = '1ALbmTB3lrzR4Md2y_1mLeXAremu0kZMP'    # in the book folder, limited access (docs/rules/sources.md, rule 6)
+CLAUDE_TAG = 'Claude: '        # replies go out from David's own account, so Claude's begin with this
+
+
+def _open_comments(doc_id):
+    """David's open comments on one Doc: not resolved, not deleted."""
+    out, tok = [], None
+    while True:
+        a = {'fileId': doc_id, 'pageSize': 100, 'fields': 'comments(id,content,resolved,deleted,createdTime,'
+             'quotedFileContent,author(displayName),replies(content,author(displayName))),nextPageToken'}
+        if tok: a['pageToken'] = tok
+        r = _run('GOOGLEDRIVE_LIST_COMMENTS', a, account=DRIVE)
+        out += [c for c in (_find(r, 'comments') or []) if not c.get('resolved') and not c.get('deleted')]
+        tok = _find(r, 'nextPageToken')
+        if not tok: return out
+
+
+def handbook_comments(show=True):
+    """Every open comment on the documents, as [{n, title, doc, id, quoted, content, replies, created}]. Each one is a
+    new rule of David's (core skill, "A new rule from David") or a question; answer it with handbook_reply()."""
+    hb, out = gh_json('docs/handbook.json'), []
+    for e in hb:
+        if not e.get('doc'): continue
+        for c in _open_comments(e['doc']):
+            out.append({'n': e['n'], 'title': e['title'], 'doc': e['doc'], 'id': c['id'],
+                        'quoted': (c.get('quotedFileContent') or {}).get('value', ''), 'content': c.get('content', ''),
+                        'replies': [x.get('content', '') for x in c.get('replies') or []], 'created': c.get('createdTime')})
+    if show:
+        print(f'{len(out)} open comment(s) on the documents')
+        for c in out:
+            print(f"- {c['title']} [{c['doc']} / {c['id']}] on “{c['quoted'][:120]}”: {c['content']}"
+                  + (f"  (replies: {' | '.join(c['replies'])})" if c['replies'] else ''))
+    return out
+
+
+def handbook_reply(doc_id, comment_id, text, resolve=True):
+    """Reply under David's comment (what was done, the ruling number) and resolve it, so the Doc can be refreshed."""
+    a = {'file_id': doc_id, 'comment_id': comment_id, 'content': CLAUDE_TAG + text}
+    if resolve: a['action'] = 'resolve'
+    _run('GOOGLEDRIVE_CREATE_REPLY', a, account=DRIVE)
+
+
+def sync_handbook(dry=False):
+    """Make the Google Docs in "-03 How it is made" match docs/handbook/NN.html on GitHub, IN PLACE: the page is uploaded
+    onto the same Doc (Drive converts text/html), so the id and link never change; a changed title is fixed. A Doc with
+    an open comment is skipped (replacing its text would detach the comment): answer it first. Commits handbook.json
+    with drive_md5 / refreshed. Run `python3 -I scripts/handbook.py build` and push first."""
+    _private_folder(HANDBOOK_FOLDER_ID, HANDBOOK_FOLDER)
+    hb = gh_json('docs/handbook.json')
+    log, changed = [], False
+    for e in hb:
+        if not e.get('doc'):
+            log.append(f"!! {e['title']}: no Google Doc yet — create an empty Doc in the folder (Google Drive connector) "
+                       "and put its id in docs/handbook.json"); continue
+        if e.get('drive_md5') == e.get('html_md5') and not e.get('retitle'):
+            m = _run('GOOGLEDRIVE_GET_FILE_METADATA', {'file_id': e['doc'], 'fields': 'name,trashed'}, account=DRIVE)
+            if _find(m, 'name') == e['title'] and not _find(m, 'trashed'):
+                continue
+        data = gh_bytes(f"docs/handbook/{e['n']}.html")
+        if hashlib.md5(data).hexdigest() != e.get('html_md5'):
+            log.append(f"!! {e['title']}: the page on GitHub is not the one built — push, then sync again"); continue
+        open_c = _open_comments(e['doc'])
+        if open_c:
+            log.append(f"-- {e['title']}: skipped, {len(open_c)} open comment(s) — handbook_comments(), answer, sync again"); continue
+        if dry:
+            log.append(f"would refresh {e['title']}"); continue
+        local = f"/mnt/files/handbook_{e['n']}.html"
+        open(local, 'wb').write(data)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            up, err = upload_local_file(local)
+        if err:
+            log.append(f"!! {e['title']}: upload failed: {err}"); continue
+        _run('GOOGLEDRIVE_UPLOAD_UPDATE_FILE', {'fileId': e['doc'], 'uploadType': 'media', 'file_to_upload':
+             {'name': f"{e['n']}.html", 'mimetype': 'text/html', 's3key': up['s3key']}}, account=DRIVE)
+        m = _run('GOOGLEDRIVE_GET_FILE_METADATA', {'file_id': e['doc'], 'fields': 'name,mimeType,parents'}, account=DRIVE)
+        if _find(m, 'mimeType') != 'application/vnd.google-apps.document':
+            raise RuntimeError(f"{e['title']}: no longer a Google Doc after the upload ({_find(m, 'mimeType')})")
+        if _find(m, 'name') != e['title']:
+            _run('GOOGLEDRIVE_UPDATE_FILE_PUT', {'fileId': e['doc'], 'name': e['title']}, account=DRIVE)
+        if HANDBOOK_FOLDER_ID not in (_find(m, 'parents') or []):
+            _move_into(e['doc'], HANDBOOK_FOLDER_ID)
+        e['drive_md5'], e['refreshed'] = e['html_md5'], datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%MZ')
+        e.pop('retitle', None)
+        changed = True
+        log.append(f"refreshed {e['title']}")
+    if changed and not dry:
+        gh_commit({'docs/handbook.json': json.dumps(hb, ensure_ascii=False, indent=1) + '\n'},
+                  'Handbook: Google Docs refreshed in place (sync_handbook)\n\n'
+                  'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>')
+    print('\n'.join(log) or 'handbook: every Doc already current')
+    return log
