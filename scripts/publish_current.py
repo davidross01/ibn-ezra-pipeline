@@ -82,14 +82,14 @@ def apply_held(book):
     for h in book.get('held', []):
         p = next((x for x in book['parashot'] if x['folder'] == h['at']), None)
         if not (p and stage.published(p)):
-            print(f"held (Ruling {h['ruling']}): {h['what']} — waits {h['when']}")
+            print(f"held ({'Ruling ' + str(h['ruling']) if h.get('ruling') else 'review row'}): {h['what']} — waits {h['when']}")
             keep.append(h)
             continue
         if DRY:
-            print(f"held (Ruling {h['ruling']}): would be applied now ({h['script']}), then its parashot rebuilt")
+            print(f"held ({'Ruling ' + str(h['ruling']) if h.get('ruling') else 'review row'}): would be applied now ({h['script']}), then its parashot rebuilt")
             keep.append(h)
             continue
-        print(f"held (Ruling {h['ruling']}): applying {h['script']}")
+        print(f"held ({'Ruling ' + str(h['ruling']) if h.get('ruling') else 'review row'}): applying {h['script']}")
         run([PY, '-I', h['script']], show=True)
     if not DRY and len(keep) != len(book.get('held', [])):
         if keep:

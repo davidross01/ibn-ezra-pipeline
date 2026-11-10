@@ -235,7 +235,7 @@ def main():
     n = rep['next']
     print(f"\nNext parasha: {n['parasha']}, from page {n['first_page']}")
     for h in book_held():
-        print(f"Held (Ruling {h['ruling']}): {h['what']}; applied {h['when']} by publish_current.py")
+        print(f"Held ({'Ruling ' + str(h['ruling']) if h.get('ruling') else 'review row'}): {h['what']}; applied {h['when']} by publish_current.py")
     print('\nNEXT:')
     for i, t in enumerate(rep['actions']):
         print(('  -> ' if i == 0 else '     ') + t)
