@@ -112,12 +112,25 @@ GLOSS = json.load(open(f'{ROOT}/data/foot_terms.json', encoding='utf-8'))
 
 front = json.load(open(FRONT, encoding='utf-8')) if len(sys.argv) <= 3 or sys.argv[3] != 'nofront' else {'before': [], 'after': []}
 PARASHA = json.load(open(f'{ROOT}/parasha.json', encoding='utf-8'))
+
+
+def edition_div():
+    """"Edition of <date>" under the parasha's title (David, 10 Nov 2026, Ruling 105): the date of the last change, from book.json."""
+    sys.path.insert(0, os.path.join(os.path.dirname(SHARED), 'scripts'))
+    import stage
+    try:
+        e = stage.entry(stage.load_book(os.path.dirname(os.path.abspath(ROOT))), os.path.basename(os.path.abspath(ROOT)))
+    except (StopIteration, FileNotFoundError):
+        return ''
+    t = stage.edition_text(e)
+    return f'<div class="tp tp-note" style="top:462px">{t}</div>' if t else ''
 if not PARASHA.get('volume_front_matter', True):
     front['before'] = []  # title, preface and key to terms appear once, at the start of the book
     if PARASHA.get('title_page'):   # row E1: the parasha opens with a title page of its own, like Bereshit's
         front['before'] = [{'html': f'<div class="tp ht-he" style="top:330px">{PARASHA["heading_he"]}</div>'
                                     '<div class="tp-rule" style="left:232px;width:200px;top:398px"></div>'
-                                    f'<div class="tp ht-en" style="top:410px">{PARASHA["title_en"]}</div>'}]
+                                    f'<div class="tp ht-en" style="top:410px">{PARASHA["title_en"]}</div>'
+                                    + edition_div()}]
 def fm(h):
     # markup + hyphenation in the text between HTML tags; the HTML tags themselves pass through
     return ''.join(seg if seg.startswith('<') else md(seg) for seg in re.split(r'(<[^>]+>)', h))

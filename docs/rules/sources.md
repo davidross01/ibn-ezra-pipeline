@@ -63,6 +63,18 @@ A copy is never refreshed while it has an open comment of yours, so the comment 
 
 **Why.** Every file that depends on the final pages is made from the same final build.
 
+### 10. Three stages, and only the current version anywhere
+**Rule.** Each parasha goes through three stages: **draft**, then **final**, then **audit**. The audit stage never closes: the parasha can be edited and updated at any time. Whatever version is being edited is the current one, and it is the only one you find in each place:
+- **Draft:** only its latest draft is in "05 Drafts", replaced in place.
+- **Final and audit:** the parasha is in "03 Parashot" as "NN <Parasha>.pdf" and its booklet in "04 Key Insights", and on GitHub in its own folder and in the full book.
+- **Every applied change publishes:** each time answers are applied, the parasha PDF, its booklet, the parts export, the front matter, the glossary and the full book are rebuilt in the same run, and the Drive files are replaced in place, so their links never change.
+- **Pages carry forward:** if a change adds or removes a page, every later parasha and its booklet are renumbered and rebuilt in the same run.
+- **Edition date:** each parasha's title page says "Edition of <date>", the date of its last change (the booklet's footer too); there is no stage word, and the file names stay the same.
+
+**Example.** An audit change to Chayei Sarah 24:1 is applied: "03 Parashot/05 Chayei Sarah.pdf" and "04 Key Insights/05 Chayei Sarah - Key Insights.pdf" are replaced in place, with that day's edition date on the title page; if it gained a page, Toledot starts one page later.
+
+**Why.** "Whatever version is being edited should be the current version, and so when it [is in] the Google Drive or GitHub, it shows the current version in each folder of that parasha … and so too with everything." *Ruling 105.*
+
 ---
 
 ## For Claude: how it is done and checked
@@ -76,4 +88,5 @@ A copy is never refreshed while it has an open comment of yours, so the comment 
 - **Rule 6:** the folder is id 1ALbmTB3lrzR4Md2y_1mLeXAremu0kZMP. `docs/handbook.json` lists every document (number, title, source, Google Doc id, and the checksums of the last build and the last refresh). `python3 -I scripts/handbook.py build` makes the HTML copies in docs/handbook/ (the Start here copy with the live status from series_status.py); in the workbench `sync_handbook()` replaces each changed doc's content in place (same id, same link), skips a doc with an open comment, and records the refresh; `handbook_comments()` lists David's open comments. `python3 -I scripts/handbook.py --check` lists the copies out of date (series_status prints it; CI warns). The weekly scheduled task is "Ibn Ezra — weekly handbook refresh". The steps are in docs/HANDOFF.md, "Keeping the documents current".
 - **Rule 7:** .github/workflows/checks.yml runs `scripts/check_all.py <parasha> --ci` for each parasha, plus `scripts/rulings.py --check`, `scripts/cite_check.py` and the handbook check (a warning only). In CI the layout and pages checks are skipped (no build there) and Ideas are listed, not failed.
 - **Rule 8:** the files to attach are listed by finalize-parasha.
+- **Rule 10:** `python3 -I scripts/publish_current.py` (`--dry` for the plan, `--force <folders|all>`) after every applied change, then commit, push and `refresh_drive()`. book.json keeps per parasha `stage` (draft / final / audit), `edition` (ISO date) and `built_hash` (scripts/stage.py, `content_hash`: the model, parasha.json without first_page, foot terms, the build scripts; Bereshit's front.json only for its own title page), and `front_hash` for bereshit/data/front.json. A content change sets the edition to today and moves a final parasha to audit; a renumbering alone keeps the edition. A draft not yet committed is replaced; a committed one gets a new number. It stops on a layout warning, on a Chromium version other than book.json's, and when check_all is not clean. series_status prints the stage and edition, and warns "changed since the current edition". Code that asks whether a parasha is published uses `stage.published()` (final or audit), never `status.startswith('final')`.
 - **Rule 9:** the finalize-parasha skill: `python3 scripts/export_parts.py` (the five parts as separate files), `python3 insights/booklet.py <Parasha>` (the davar Torah's quoted English in insights/davar.py must match the book, so change it with the book), `review_round/key_add_parasha.py`, `python3 scripts/publish_pdfs.py --rebuild` (full book and glossary), `refresh_drive()`, archiving.

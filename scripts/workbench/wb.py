@@ -288,7 +288,7 @@ def drive_plan(tree=None):
         plan['02'].append(('Ibn Ezra on the Torah - Glossary.pdf', 'back/Ibn Ezra on the Torah - Glossary.pdf', None))
     for i, e in enumerate(book['parashot'], 1):
         P, folder = e['parasha'], e['folder']
-        final = str(e.get('status', '')).startswith('final')
+        final = (e.get('stage') in ('final', 'audit') if e.get('stage') else str(e.get('status', '')).startswith('final'))   # final or audit (Ruling 105)
         ins = f'insights/Ibn Ezra on Parashat {P} - Key Insights.pdf'
         if ins in tree:
             plan['04'].append((f'{i:02d} {P} - Key Insights.pdf', ins, ins.split('/')[-1]))
@@ -302,7 +302,7 @@ def drive_plan(tree=None):
             if drafts:
                 n = max(drafts, key=lambda p: int(p.rsplit('draft ', 1)[1][:-4]))
                 plan['05'].append((n.split('/')[-1], n, f'Ibn Ezra {P} - draft'))
-    finals = [e['parasha'] for e in book['parashot'] if str(e.get('status', '')).startswith('final')]
+    finals = [e['parasha'] for e in book['parashot'] if (e.get('stage') in ('final', 'audit') if e.get('stage') else str(e.get('status', '')).startswith('final'))]
     return plan, finals
 
 

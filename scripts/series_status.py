@@ -15,6 +15,8 @@ time). Then: the full-book PDF, the next parasha and its first page, and any
 uncommitted changes.
 """
 import json, os, re, subprocess, sys, glob
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import stage   # draft / final / audit and the edition date (Ruling 105)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -77,14 +79,17 @@ def main():
     lines = []
     for p in book['parashot']:
         name, f = p['parasha'], p['folder']
-        final = p['status'].lower().startswith('final')
+        final = (p.get('stage') in ('final', 'audit') if p.get('stage') else str(p.get('status', '')).lower().startswith('final'))   # final or audit (Ruling 105)
         # bereshit/data/front.json is the front matter's source, not Bereshit's pages (it has its own check below)
         data_t = ctime(f'{f}/data', f'{f}/work', ':(exclude)bereshit/data/front.json')
         drafts = sorted(glob.glob(f'{f}/drafts/*.pdf'), key=draft_key)
         latest = drafts[-1] if drafts else None
         lat_t = ctime(latest)
         r = {'parasha': name, 'pages': f"{p['first_page']}–{p['last_page']}", 'status': p['status'],
+             'stage': stage.stage(p), 'edition': stage.edition_text(p),
              'latest_pdf': latest, 'data_changed': day(data_t), 'warnings': []}
+        if p.get('built_hash') and stage.content_hash(f) != p['built_hash']:
+            r['warnings'].append('changed since the current edition: run scripts/publish_current.py (Ruling 105)')
         if latest and lat_t < data_t:
             r['warnings'].append(f'data changed after the latest PDF ({os.path.basename(latest)}): rebuild')
         if final:
@@ -174,7 +179,7 @@ def main():
     for d in rep['unarchived']:
         acts.append((4, f"Ask David: archive {d['title']} (applied{', ' + d['applied'][:10] if d.get('applied') else ''}, not archived) {d['link']}"))
     lastp = book['parashot'][-1]
-    if lastp['status'].lower().startswith('final') and rep['next']['parasha']:
+    if (lastp.get('stage') in ('final', 'audit') if lastp.get('stage') else lastp['status'].lower().startswith('final')) and rep['next']['parasha']:
         acts.append((4, f"Start {rep['next']['parasha']} at page {book.get('next_first_page')} (commentary-book-build)"))
     elif rep['next']['parasha']:
         acts.append((5, f"When {lastp['parasha']} is final: start {rep['next']['parasha']} (it can also start now, in parallel)"))
@@ -193,7 +198,7 @@ def main():
         return
     print(book['title'])
     for r in rep['parashot']:
-        print(f"\n{r['parasha']} — pages {r['pages']} — {r['status']}")
+        print(f"\n{r['parasha']} — pages {r['pages']} — stage: {r['stage']}" + (f" ({r['edition']})" if r['edition'] else '') + f" — {r['status']}")
         print(f"  latest PDF: {os.path.basename(r['latest_pdf']) if r['latest_pdf'] else 'none'}; data last changed {r['data_changed']}")
         print(f"  Key Insights: {r['insights']}")
         for d in r['open_reviews']:

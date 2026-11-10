@@ -85,7 +85,7 @@ def write(dirpath, title, out, pages=None):
     if pages: readme += ['', f'Book pages: {pages}.']
     open(f'{dirpath}/README.md', 'w', encoding='utf-8').write('\n'.join(readme) + '\n')
 
-final = [p for p in BOOK['parashot'] if str(p.get('status', '')).startswith('final')]
+final = [p for p in BOOK['parashot'] if (p.get('stage') in ('final', 'audit') if p.get('stage') else str(p.get('status', '')).lower().startswith('final'))]   # final or audit (Ruling 105)
 if not final: sys.exit('no parasha is marked final in book.json')
 book = {k: [] for k, _ in PARTS}
 for p in final:

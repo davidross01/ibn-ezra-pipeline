@@ -13,7 +13,7 @@ import glob, json, os, shutil, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); os.chdir(ROOT)
 B = json.load(open('book.json')); done = []
 for p in B['parashot']:
-    if not p['status'].startswith('final'): continue
+    if not (p.get('stage') in ('final', 'audit') if p.get('stage') else str(p.get('status', '')).lower().startswith('final')): continue   # final or audit: both published (Ruling 105)
     name, folder = p['parasha'], p['folder']
     final = f'{folder}/drafts/Ibn Ezra {name} - final.pdf'
     assert os.path.exists(final), final

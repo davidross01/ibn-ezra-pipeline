@@ -30,7 +30,7 @@ cd .. && python3 -I scripts/check_all.py <folder>
 
 ## 3. Files and book.json
 - `cp build/book.pdf "drafts/Ibn Ezra <Parasha> - final.pdf"`.
-- book.json: status "final (<date>): <which reviews>", first/last page from rep.json, "chromium" = the major version in rep.json "browser". If the page count changed, renumber every later parasha (commentary-book-build) and tell David; check_all's pages check must then be clean for each.
+- book.json: "stage": "final" and status "final (<date>): <which reviews>"; then `python3 -I scripts/publish_current.py` sets the pages, "chromium", "edition" and "built_hash", and renumbers and rebuilds every later parasha if the page count changed (tell David which moved). From then on the parasha is published: any later change is the **audit** stage, which never closes — apply-review-decisions applies it and publish_current.py replaces every file in place (David, 10 Nov 2026, Ruling 105).
 - **Key to terms** (Front Matter C5: each entry gives its first place in every parasha). Add this parasha's places:
   ```
   python3 -I review_round/key_add_parasha.py <Parasha> <folder>/data/model.json <first ch> <last ch>
@@ -54,7 +54,7 @@ Check: 10 pages (i–x) and the new parasha in the contents with its first page 
 ## 6. Booklet and full book
 - Make sure the parasha's davar Torah is in insights/davar.py (commentary-key-insights-booklet).
 - Rebuild **this parasha's** booklet only: `python3 insights/booklet.py <Parasha>`. A booklet takes its page references from its parasha's build/rep.json, so rebuild another parasha's booklet only from a build made with that parasha's Chromium version (`publish_pdfs.py --rebuild` rebuilds them all: use it only when every parasha has such a build).
-- `python3 scripts/publish_pdfs.py` (no --rebuild): copies the final into `<folder>/Ibn Ezra on Parashat <P>.pdf` and joins `book/Ibn Ezra on the Torah - Bereshit to <P>.pdf` (one file; the old one is replaced). Check: page count = 10 + the parasha's last page; each parasha starts on its book.json page (`pdftotext -f <page+10> -l <page+10>`); each insight's "Full commentary … page N" is the page of the comment it quotes; grep the booklet for wordings changed in the last round.
+- `python3 -I scripts/publish_current.py` has already rebuilt this booklet, the front matter, the parts export and the full book if it rebuilt the parasha; run `python3 scripts/publish_pdfs.py` (no --rebuild) only if the booklet or key changed after it: it copies the final into `<folder>/Ibn Ezra on Parashat <P>.pdf` and joins `book/Ibn Ezra on the Torah - Bereshit to <P>.pdf` (one file; the old one is replaced). Check: page count = 10 + the parasha's last page; each parasha starts on its book.json page (`pdftotext -f <page+10> -l <page+10>`); each insight's "Full commentary … page N" is the page of the comment it quotes; grep the booklet for wordings changed in the last round.
 - The full book stays in GitHub (and is sent in chat); it is not uploaded to Drive (David, 29 Oct 2026).
 
 ## 7. Back up
