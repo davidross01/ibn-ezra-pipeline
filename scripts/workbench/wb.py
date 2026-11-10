@@ -596,7 +596,7 @@ def sync_handbook(dry=False):
             _run('GOOGLEDRIVE_UPDATE_FILE_PUT', {'fileId': e['doc'], 'name': e['title']}, account=DRIVE)
         if HANDBOOK_FOLDER_ID not in (_find(m, 'parents') or []):
             _move_into(e['doc'], HANDBOOK_FOLDER_ID)
-        e['drive_md5'], e['refreshed'] = e['html_md5'], datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%MZ')
+        e['drive_md5'], e['refreshed'] = e['html_md5'], datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%MZ')
         e.pop('retitle', None)
         changed = True
         log.append(f"refreshed {e['title']}")
@@ -604,5 +604,9 @@ def sync_handbook(dry=False):
         gh_commit({'docs/handbook.json': json.dumps(hb, ensure_ascii=False, indent=1) + '\n'},
                   'Handbook: Google Docs refreshed in place (sync_handbook)\n\n'
                   'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>')
+    known = {e.get('doc') for e in hb}
+    for f in _drive_ls(HANDBOOK_FOLDER_ID):
+        if f['id'] not in known:
+            log.append(f"-- left alone, not in docs/handbook.json: {f['name']} ({f['id']})")
     print('\n'.join(log) or 'handbook: every Doc already current')
     return log
