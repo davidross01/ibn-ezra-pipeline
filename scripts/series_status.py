@@ -31,6 +31,11 @@ TORAH = GENESIS + ['Shemot', 'Vaera', 'Bo', 'Beshalach', 'Yitro', 'Mishpatim', '
     'Vayeilech', "Ha'azinu", "V'Zot HaBerachah"]
 
 
+def book_held():
+    """Changes David chose to hold for a later build (book.json "held")."""
+    return json.load(open(os.path.join(ROOT, 'book.json'), encoding='utf-8')).get('held', [])
+
+
 def ctime(*paths):
     """Last commit time (unix) touching any of the paths; 0 if never committed."""
     paths = [p for p in paths if p]
@@ -229,6 +234,8 @@ def main():
         print(f'  ! {w}')
     n = rep['next']
     print(f"\nNext parasha: {n['parasha']}, from page {n['first_page']}")
+    for h in book_held():
+        print(f"Held (Ruling {h['ruling']}): {h['what']}; applied {h['when']} by publish_current.py")
     print('\nNEXT:')
     for i, t in enumerate(rep['actions']):
         print(('  -> ' if i == 0 else '     ') + t)

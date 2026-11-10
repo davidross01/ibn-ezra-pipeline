@@ -74,10 +74,36 @@ def build(folder):
     return int(m.group(1)), int(m.group(2)), int(m.group(3))
 
 
+def apply_held(book):
+    """A change David chose to hold for a later build (book.json "held"; sources.md, For Claude): it runs once the
+    parasha named in "at" is published (finalize-parasha sets its stage to final, then runs this script), and the
+    parashot it touches are rebuilt in the same run, because their content changed."""
+    keep = []
+    for h in book.get('held', []):
+        p = next((x for x in book['parashot'] if x['folder'] == h['at']), None)
+        if not (p and stage.published(p)):
+            print(f"held (Ruling {h['ruling']}): {h['what']} — waits {h['when']}")
+            keep.append(h)
+            continue
+        if DRY:
+            print(f"held (Ruling {h['ruling']}): would be applied now ({h['script']}), then its parashot rebuilt")
+            keep.append(h)
+            continue
+        print(f"held (Ruling {h['ruling']}): applying {h['script']}")
+        run([PY, '-I', h['script']], show=True)
+    if not DRY and len(keep) != len(book.get('held', [])):
+        if keep:
+            book['held'] = keep
+        else:
+            book.pop('held', None)
+        json.dump(book, open('book.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1); open('book.json', 'a').write('\n')
+
+
 def main():
     book = stage.load_book()
     chrome = run([PY, '-c', 'from playwright.sync_api import sync_playwright as s; p=s().start(); '
                   'b=p.chromium.launch(); print(b.version.split(".")[0]); b.close(); p.stop()']).strip()
+    apply_held(book)
     plan, expected_first = [], 1
     for p in book['parashot']:
         f = p['folder']

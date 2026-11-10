@@ -82,7 +82,7 @@ def plain(t):
 
 
 def own_checks(folder, M):
-    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'Ideas': [], 'Ideas (Hebrew)': [], 'Idea sources': [], 'Its parallel': [], 'Saadiah': [], 'markers': [], 'pages': []}
+    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'Ideas': [], 'Ideas (Hebrew)': [], 'Idea sources': [], 'Its parallel': [], 'Saadia': [], 'markers': [], 'pages': []}
     # every word pointed in full (Vowels Review 1, E1)
     sys.path.insert(0, os.path.join(ROOT, 'scripts')); import partial_vowels
     out['Partly pointed'] = [f'{c}:{v} {w}' for c, v, w in partial_vowels.scan(folder)]
@@ -103,12 +103,16 @@ def own_checks(folder, M):
             t = plain(b.get('text', ''))
             for m in re.finditer(r'\b(?:its|their) brothers?\b|\bis the brother of\b', t):
                 out['Its parallel'].append(f"{sec} {b['ch']}:{b['v']}: …{t[max(0, m.start() - 40):m.end() + 30]}…")
-    # one spelling of the Gaon's name: Saadiah (translation.md, rule 18; David, 10 Nov 2026)
+    # one spelling of the Gaon's name: Saadia (translation.md, rule 18; Ruling 108). While the change is held
+    # (book.json "held"), the parashot it lists keep the old spelling, one spelling within each parasha.
+    book = json.load(open(os.path.join(ROOT, 'book.json'), encoding='utf-8'))
+    held = next((h for h in book.get('held', []) if h.get('ruling') == 108 and folder in h.get('folders', [])), None)
+    wrong = r'Saadia(?!h)' if held else r'Saadiah'
     for sec in ('ec', 'notes'):
         for b in M[sec]:
             t = plain(b.get('text', ''))
-            for m in re.finditer(r'Saadia(?!h)', t):
-                out['Saadiah'].append(f"{sec} {b['ch']}:{b['v']}: …{t[max(0, m.start() - 40):m.end() + 20]}…")
+            for m in re.finditer(wrong, t):
+                out['Saadia'].append(f"{sec} {b['ch']}:{b['v']}: …{t[max(0, m.start() - 40):m.end() + 20]}…")
     for sec in ('ec', 'notes'):
         for b in M[sec]:
             if re.search(r'\{[oq]:', b.get('text', '')):

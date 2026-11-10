@@ -127,12 +127,12 @@ The rules for the English: the translation of Ibn Ezra, the verse band, God's na
 ### 17. Grammar terms
 **Rule.** Every grammar term is translated by the glossary in **05 Grammar**, the same way every time.
 
-### 18. One spelling for each person: Saadiah Gaon
-**Rule.** A person's name is spelled one way through the whole book: the parashot, the notes, the front matter and the Key Insights booklets. The Gaon is "Saadiah Gaon" ("Rav Saadiah Gaon" in the key to terms); his book is *Emunot veDeot*.
+### 18. One spelling for each person: Saadia Gaon
+**Rule.** A person's name is spelled one way through the whole book: the parashot, the notes, the front matter and the Key Insights booklets. The Gaon is "Saadia Gaon" ("Rav Saadia Gaon" in the key to terms); his book is *Emunot veDeot*.
 
-**Example.** Not "Saadia Gaon" in one note and "Saadiah Gaon" in the next, as Toledot 27:40 once had.
+**Example.** "Saadia Gaon pushed this question off 'with a broken reed'" (Toledot 27:40), never the same note with a second spelling a few lines later.
 
-**Why.** A reader who meets two spellings may think they are two people. You chose "Saadiah" everywhere in Audit 7. *Ruling 107.*
+**Why.** A reader who meets two spellings may think they are two people. You first chose the spelling with a final h (Audit 7), then changed it to "Saadia", to come into the finished parashot with their next full build. *Ruling 108.*
 
 ---
 
@@ -146,5 +146,5 @@ The rules for the English: the translation of Ibn Ezra, the verse band, God's na
 - **Rule 13:** Yerushalayim stands at Bereshit 2:11, Lech Lecha 12:9, 14:13, 14:18, Vayera 18:26, 22:2. review_round/apply_places.py (its MAP is the list) applied the place names to Bereshit, Noach and Lech Lecha; the Place names row of Lech Lecha Review List 1 Part F is the model row.
 - **Rule 14:** in the model a letter is {h}א{/h}; a vowel sign {v}אָ{/v}; in the foot strip <span class="vs" dir="rtl">אָ</span>; a root type {h}פ״א{/h}. Before each draft, search the English for letter and vowel names and convert them (the check's hits on "Shin’ar" and "Heth" are names, not letters).
 - **Rule 15:** the Hebrew alone is {h}…{/h}, with no {g}…{/g} gloss. scripts/check_book.py lists every glossed Hebrew word followed by "is", "means" or "are called"; ask of each whether Ibn Ezra is defining it.
-- **Rule 18:** check_all "Saadiah" flags "Saadia" without the final h in the commentary and notes of every parasha; the booklets' sources (insights/*.py) are searched the same way when a booklet is made.
+- **Rule 18:** check_all "Saadia" flags the old spelling with the final h in the commentary and notes of every parasha; the booklets' sources (insights/*.py) and the key to terms (bereshit/data/front.json) are searched the same way when they are rebuilt. While a change of spelling is held (book.json "held", sources.md, For Claude), the parashot it lists are checked for the spelling they still have, so no parasha mixes the two. The change itself is `review_round/apply_saadia_r108.py` (`--dry` lists the places); publish_current.py runs it when the hold ends.
 - **Rule 16:** check_all "Its parallel" flags "its brother", "their brothers" and "is the brother of" in the commentary and notes; accept a literal one once read.
