@@ -40,13 +40,14 @@ def status_md():
     if out.returncode:
         return '_The status could not be made this time._\n'
     d = json.loads(out.stdout)
-    L = ['| Parasha | Pages | Status |', '|---|---|---|']
+    L = ['| Parasha | Pages | Stage | Edition | Last change |', '|---|---|---|---|---|']
     reviews = []
     for p in d['parashot']:
         st = p['status'].split('; earlier')[0]
         word = st.split(' (')[0]
         when = re.search(r'\d{1,2} \w{3} 20\d\d', st)
-        L.append(f"| {p['parasha']} | {p['pages']} | {word}{' (' + when.group(0) + ')' if when else ''} |")
+        ed = (p.get('edition') or '').replace('Edition of ', '')
+        L.append(f"| {p['parasha']} | {p['pages']} | {p.get('stage', word)} | {ed or '–'} | {word}{' (' + when.group(0) + ')' if when else ''} |")
         reviews += [r for r in p.get('open_reviews', [])]
     reviews += [r for r in d.get('other_reviews') or [] if r.get('link')]
     nx = d.get('next') or {}
