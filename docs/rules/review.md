@@ -151,6 +151,13 @@ How a change reaches the book: everything goes to you as a row in a review list,
 
 **Why.** A rule said once in chat would otherwise be forgotten in the next session.
 
+### 24. Every bracket is shown to you as a row
+**Rule.** Every correction put into Ibn Ezra's Hebrew as (printed) [correction], and every word added in [brackets] to the translation of the verse, goes to you as a row in a review list — every time, in a draft, an audit or any other change. None is put in silently. A bracket already in the book that never went through a row is brought to you in a list of its own.
+
+**Example.** Toledot 25:30: the Hebrew's (נזיר) [נָזִיד], and the verse's "this red [stew]" — which you then asked to have taken out, "this red", at the next full rebuild (Vayetze's final).
+
+**Why.** "Here an example (נזיר) [נָזִיד], I always want you to show me in the review every time. And every time you add something into the text of the Chumash translation as well." *Ruling 109.*
+
 ---
 
 ## For Claude: how it is done and checked
@@ -170,5 +177,6 @@ How a change reaches the book: everything goes to you as a row in a review list,
 - **Rule 20:** review_audit/apply_answers.py applies a names row itself (Approve changes the name in the parasha's work files; either answer goes into confirmed_names.json; a name also found in another parasha is reported for a book-wide row) and stops on any other approved row with no ops until it is made by hand and listed in `<key>_by_hand.json`.
 - **Rule 21:** `python3 -I scripts/check_all.py <folder>` (repo top) runs consonant_check, vowel_check, misprint_scan and check_book, and checks Text lines, Onkelos lines, ה׳ in the English, Hebrew sources, partly pointed words, ideas and idea sources, "its parallel" and the page numbers. Hits already read are kept in `<folder>/review/check_baseline.json`; only NEW hits are listed; after reading every one, rerun with `--accept`. check_book alone: `python3 scripts/check_book.py <model.json> build/rep.json` — one report of every check (markup, Hashem, letter and vowel names, stray characters, typing slips, empty Text labels, "agrees with Sefaria", source lines, reference brackets, glosses on defined words, verse-band brackets, term spellings, the terms audit, the layout report). Fix the mechanical hits, make rows of the translation ones ("Heth" and "Shin’ar" are false hits of the letter check; Lech Lecha 15:2 and 15:8 are expected hits of the Hashem check). Also run clean.py --check (notes.md, "For Claude").
 - **Rule 22:** the commentary-audit skill (Parts A–F, renumber once at the end); checklist in review_audit/checklist.md.
+- **Rule 24:** `scripts/brackets_shown.py` lists every (printed) [correction] in the Hebrew and every [bracket] in the verse band that stands in no review list (rows files and archived lists); check_all "Brackets shown" fails on any. A new draft's brackets each get a row in its first list (Part A for the verse band, Part G for misprints); a bracket a held change removes (book.json "held" "edits") is not counted.
 - **Review sheets in Google Sheets** (Grammar Clarity Review 1 was one): one column per place, read downwards (labels in column A, frozen); Hebrew without cantillation, meteg or paseq (Sheets shows them as boxes; keep vowels and dagesh); rows that are not book text shaded grey; the proposed text in orange right under the current text, with its decision dropdown under it. Put each new tab first and hide superseded tabs, since the sheet opens on the first tab.
 - **A stopped doc build resumes:** build with `Builder.run(cfg)`, which records each finished phase in /mnt/files/review_builds/ and, called again, finishes the same doc instead of making a second one (Ruling 101).

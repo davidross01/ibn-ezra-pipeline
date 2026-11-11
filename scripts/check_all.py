@@ -82,7 +82,7 @@ def plain(t):
 
 
 def own_checks(folder, M):
-    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'Ideas': [], 'Ideas (Hebrew)': [], 'Idea sources': [], 'Its parallel': [], 'Saadia': [], 'markers': [], 'pages': []}
+    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'Ideas': [], 'Ideas (Hebrew)': [], 'Idea sources': [], 'Its parallel': [], 'Saadia': [], 'Brackets shown': [], 'markers': [], 'pages': []}
     # every word pointed in full (Vowels Review 1, E1)
     sys.path.insert(0, os.path.join(ROOT, 'scripts')); import partial_vowels
     out['Partly pointed'] = [f'{c}:{v} {w}' for c, v, w in partial_vowels.scan(folder)]
@@ -117,6 +117,10 @@ def own_checks(folder, M):
         for b in M[sec]:
             if re.search(r'\{[oq]:', b.get('text', '')):
                 out['markers'].append(f"{sec} {b['ch']}:{b['v']}: unresolved marker (run work/assemble.py)")
+    # every bracket went to David as a review row (review.md, rule 24; Ruling 109)
+    sys.path.insert(0, os.path.join(ROOT, 'scripts')); import brackets_shown
+    for kind, c, v, s in brackets_shown.not_shown(folder, M):
+        out['Brackets shown'].append(f"{kind} {c}:{v} {s} is in no review list")
     # (printed) [correction] -> Text line in a note of the same verse
     notes = {}
     for b in M['notes']:
