@@ -90,7 +90,7 @@ def apply_held(book):
             keep.append(h)
             continue
         print(f"held ({'Ruling ' + str(h['ruling']) if h.get('ruling') else 'review row'}): applying {h['script']}")
-        run([PY, '-I', h['script']], show=True)
+        run([PY, '-I', h['script'], *h.get('args', [])], show=True)
     if not DRY and len(keep) != len(book.get('held', [])):
         if keep:
             book['held'] = keep
