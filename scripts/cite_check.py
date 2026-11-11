@@ -42,7 +42,7 @@ def idea_rows():
         key = os.path.basename(d['rows_file']).replace('_rows.json', '')
         rows = json.load(open(os.path.join(ROOT, d['rows_file']), encoding='utf-8'))
         for r in rows:
-            if (key.startswith('ideas_') or r.get('part') == 'F') and r.get('ops'):
+            if (key.startswith('ideas_') or (r.get('part') == 'F' and not key.startswith(('proof', 'consistency')))) and r.get('ops'):   # in the proofreading and consistency lists Part F is not Ibn Ezra's ideas
                 yield key, r
 
 def check():
