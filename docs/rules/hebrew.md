@@ -75,7 +75,7 @@ The rules for the Hebrew on the page — its letters, its vowels, Hebrew inside 
 ### 11. A misprint is shown as (printed) [correction]
 **Rule.** A misprinted word is shown in the Hebrew as the printed form in round brackets and the correction, with vowels, in square brackets. The English follows the correction unless you decide otherwise, and every correction gets a short *Text.* line in the note on the same verse. Where you choose to leave a misprint uncorrected, the Hebrew shows only the printed text and there is no Text line.
 
-**Example.** Left uncorrected by your choice: Lech Lecha 12:11 יהי'.
+**Example.** Bereshit 2:19 (כיאור) [בֵּיאוּר], with its *Text.* line in the note. (Lech Lecha 12:11 יהי' was first left as printed by your choice; you then approved its correction in Proofreading Audit 1.)
 
 **Why.** The reader sees both what was printed and what is meant. *Rulings 40, 41.*
 
