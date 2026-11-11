@@ -132,7 +132,7 @@ The rules for the English: the translation of Ibn Ezra, the verse band, God's na
 
 **Example.** "Saadia Gaon pushed this question off 'with a broken reed'" (Toledot 27:40), never the same note with a second spelling a few lines later.
 
-**Why.** A reader who meets two spellings may think they are two people. You first chose the spelling with a final h (Audit 7), then changed it to "Saadia", to come into the finished parashot with their next full build. *Ruling 108.*
+**Why.** A reader who meets two spellings may think they are two people. You first chose the spelling with a final h (Audit 7), then changed it to "Saadia". *Ruling 108.*
 
 ---
 
