@@ -5,9 +5,9 @@ How a page of the book looks (the Seforno-volume template), where things go on i
 ## The page
 
 ### 1. What is on a page, in order
-**Rule.** On top, the verse band: the Hebrew Chumash in its usual look (vowels, bold, cantillation) with the English beside it. Under it: the Hebrew commentary (right to left), a divider, the English commentary, a rule, the notes in two columns, and at the foot a strip that defines the grammar terms used on that page. No rishon labels and no boxed aliyah marks.
+**Rule.** On top, the verse band: the Hebrew Chumash in its usual look (vowels, bold, cantillation) with the English beside it. Under it: the Hebrew commentary (right to left), a divider, the English commentary, a rule, the notes in two columns, and at the foot a strip that defines the grammar terms used on that page. No rishon labels and no boxed aliyah marks. Ibn Ezra's Hebrew commentary is set a little bigger than it was at first, even where that moves a comment to the next page.
 
-**Why.** It is the layout of the Seforno volume you chose as the model.
+**Why.** It is the layout of the Seforno volume you chose as the model; the Hebrew is bigger because the pages had room at the bottom. *Ruling 111.*
 
 ### 2. The verse band
 **Rule.** The Chumash Hebrew is a little smaller than at first. The English and the Hebrew start on the same line. A new chapter starts a new paragraph, in both the Hebrew and the English, in every parasha, Bereshit included.
@@ -104,6 +104,7 @@ How a page of the book looks (the Seforno-volume template), where things go on i
 - **Rule 7:** each parasha's terms are in data/foot_terms.json (Bereshit's list is the starting point for the next parasha). The build warns "strip dropped" if a term is left out; then shorten a definition.
 - **Rule 8:** set `title_page: true` and `title_en` in parasha.json; render.py builds the page and layout.js leaves out the on-page heading.
 - **Rule 9:** always take page numbers, status and next_first_page from book.json (never from a skill or a note); see the commentary-book-build skill.
+- **Rule 1 (size):** `.hc` in shared/scripts/book.css and bereshit/scripts/book.css: 15px on the 16.4px line grid; the bold headword `b.lem` 1.05em (a bigger headword or line height breaks the grid: make_pdf warns “non-grid block”). Held in book.json until Vayetze's final (review_round/apply_held_edits.py 111).
 - **Rule 10:** the front matter lives in bereshit/data/front.json ('before'), built with `bereshit/scripts/render.py data/model_final5.json build/front.html frontonly`. "First:" places: small grey `.keytab .kf`; when a parasha becomes final, run review_round/key_add_parasha.py (term in the Hebrew commentary + house English in the English commentary of the same verse), read every candidate (review_round/key_verify.py) and add its first place to each entry.
 - **Rule 11:** `bereshit/scripts/render.py data/model_final5.json build/back.html backonly`, numbered on from the last final page, running head GLOSSARY, written to `back/Ibn Ezra on the Torah - Glossary.pdf` by scripts/publish_pdfs.py every time the book is joined (front matter, final parashot, glossary). Terms from `<folder>/data/foot_terms.json`.
 - **Rule 12:** layout.js warns "past bottom … (front/back matter)" when a static page's text runs below 980 px.
