@@ -82,7 +82,7 @@ def plain(t):
 
 
 def own_checks(folder, M):
-    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'Ideas': [], 'Ideas (Hebrew)': [], 'Idea sources': [], 'Its parallel': [], 'Saadia': [], 'Brackets shown': [], 'markers': [], 'pages': []}
+    out = {'Text lines': [], 'Onkelos': [], 'Name in English': [], 'Partly pointed': [], 'Hebrew sources': [], 'Ideas': [], 'Ideas (Hebrew)': [], 'Idea sources': [], 'Its parallel': [], 'Saadia': [], 'Brackets shown': [], 'Quote without Hebrew': [], 'markers': [], 'pages': []}
     # every word pointed in full (Vowels Review 1, E1)
     sys.path.insert(0, os.path.join(ROOT, 'scripts')); import partial_vowels
     out['Partly pointed'] = [f'{c}:{v} {w}' for c, v, w in partial_vowels.scan(folder)]
@@ -121,6 +121,10 @@ def own_checks(folder, M):
     sys.path.insert(0, os.path.join(ROOT, 'scripts')); import brackets_shown
     for kind, c, v, s in brackets_shown.not_shown(folder, M):
         out['Brackets shown'].append(f"{kind} {c}:{v} {s} is in no review list")
+    # a verse quoted in a note has its Hebrew before the English (notes.md, rule 17; Ruling 110)
+    import quote_hebrew
+    for c, v, q in quote_hebrew.missing(folder, M):
+        out['Quote without Hebrew'].append(f"note {c}:{v}: {q[:90]}")
     # (printed) [correction] -> Text line in a note of the same verse
     notes = {}
     for b in M['notes']:
