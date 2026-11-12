@@ -126,6 +126,13 @@ Where he hints and stops, the note says what the hint points to and **names the 
 
 **Why.** Once in the preface is enough; on every section it clutters the page. *Ruling 51.*
 
+### 17. A verse quoted in a note: the Hebrew, then the English
+**Rule.** When a note quotes a verse (or a few words of one), it gives the Hebrew words, pointed, then their English in quotation marks, then the reference.
+
+**Example.** Not “Take, I pray, your son” (22:2) alone, but the Hebrew of those words from 22:2 followed by “Take, I pray, your son” (22:2).
+
+**Why.** "Remember to make the notes have also the Hebrew when quoting as well as the translations." *Ruling 110.*
+
 ---
 
 ## For Claude: how it is done and checked
@@ -136,4 +143,5 @@ Where he hints and stops, the note says what the hint points to and **names the 
 - **Rules 9–11:** the ibn-ezra-idea-notes skill; for a parasha already written, commentary-ideas-audit. `scripts/ideas_scan.py <folder>` lists the comments that touch an idea; check_all runs it as "Ideas"; `<folder>/review/ideas.json` records the verses done or judged not to need a paragraph. `<folder>/review/idea_sources.json` records, for every place in ideas.json, what was read: {"c:v": {"ibn_ezra": "Yesod Mora 5:1 (row …)" | "nothing further", "saadia": "III:1 (row …)" | "nothing on this idea"}}; check_all lists the places not yet recorded as "Idea sources" (never remembered as read). Models: Toledot List 1 Part F as rebuilt in the old style; the Ideas Audits of Bereshit to Chayei Sarah. In a parasha already written, the paragraphs are not rewritten: what is new is added in its place ("add sentences only"), one review doc per parasha ("Ideas Audit — <Parasha>"), and an open list's Ideas Part is updated in place; places David kept, or that were judged "not needed", are raised again where Ibn Ezra's own writings or Saadia add something.
 - **Rule 12:** `python3 -I scripts/ideas_scan.py <folder> --hebrew` (check_all "Ideas (Hebrew)", never accepted); each find goes into ideas.json (a row) or `<folder>/review/ideas_he.json` with what it is and why no row.
 - **Rule 13:** the source is kept in review_audit/sources/library.json as read on Sefaria; review_audit/citations.json records, for each idea row, the passages the sentence rests on (word ranges in the library) and the verdict (supported / partly / not supported, with the problems). `python3 -I scripts/cite_check.py` fails on any open idea row without a citation, changed since it was checked, or not supported; CI runs it.
+- **Rule 17:** the Hebrew is copied from the verse (Sefaria / src/tanakh.json, without cantillation) by program, the words the English quotes and no more, written {h}…{/h} before the English. check_all “Quote without Hebrew” flags an English quotation followed by a verse reference with no Hebrew just before it; in a new draft each is fixed before the draft goes out, in a finished parasha each becomes a review row.
 - **Rules 14–15, before each draft:** `python3 -I review_grammar/all/clean.py --check` (repo top) lists any new "Uncertain", Sefaria or headword remarks. Clean them out the same way (clean.py), add them to review_grammar/all/editorial_record.json and refresh the Editorial record Google Doc (review_grammar/all/make_record.py, then the doc in place, davross846). The Text line is {i}Text.{/i}.
