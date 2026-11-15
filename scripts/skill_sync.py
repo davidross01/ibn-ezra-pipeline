@@ -17,7 +17,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SERIES = ['commentary-house-rules', 'commentary-book-build', 'commentary-audit', 'commentary-ideas-audit',
           'ibn-ezra-idea-notes', 'apply-review-decisions', 'review-list-google-doc', 'check-review-doc',
           'explain-commentary-row', 'commentary-onkelos-notes', 'commentary-misprint-finder',
-          'commentary-key-insights-booklet', 'finalize-parasha', 'commentary-publish-pdfs', 'commentary-series-status']
+          'commentary-key-insights-booklet', 'finalize-parasha', 'commentary-publish-pdfs', 'commentary-series-status',
+          'commentary-sense-read', 'commentary-term-sheet', 'commentary-checks-upkeep']
 
 def repo_path(name):
     return os.path.join(ROOT, 'docs', 'rules', 'CORE_SKILL.md') if name == 'commentary-house-rules' \
