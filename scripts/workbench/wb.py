@@ -563,11 +563,12 @@ def handbook_reply(doc_id, comment_id, text, resolve=True):
     _run('GOOGLEDRIVE_CREATE_REPLY', a, account=DRIVE)
 
 
-def sync_handbook(dry=False):
+def sync_handbook(dry=False, budget=130):
     """Make the Google Docs in "-03 How it is made" match docs/handbook/NN.html on GitHub, IN PLACE: the page is uploaded
     onto the same Doc (Drive converts text/html), so the id and link never change; a changed title is fixed. A Doc with
     an open comment is skipped (replacing its text would detach the comment): answer it first. Commits handbook.json
     with drive_md5 / refreshed. Run `python3 -I scripts/handbook.py build` and push first."""
+    t0 = datetime.datetime.now().timestamp()     # a workbench cell stops at 180 s: refresh what fits, record it, run again
     hb = gh_json('docs/handbook.json')
     # 00–15 live in "-03 How it is made"; an entry with `folder` lives in another private folder (the guide, the skills,
     # the audit: David, 15 Nov 2026, "everything also in the Google Drive"). Every one must be limited-access.
@@ -583,6 +584,8 @@ def sync_handbook(dry=False):
             m = _run('GOOGLEDRIVE_GET_FILE_METADATA', {'file_id': e['doc'], 'fields': 'name,trashed'}, account=DRIVE)
             if _find(m, 'name') == e['title'] and not _find(m, 'trashed'):
                 continue
+        if not dry and datetime.datetime.now().timestamp() - t0 > budget:
+            log.append('.. stopped for time: run sync_handbook() again for the rest'); break
         data = gh_bytes(f"docs/handbook/{e['n']}.html")
         if hashlib.md5(data).hexdigest() != e.get('html_md5'):
             log.append(f"!! {e['title']}: the page on GitHub is not the one built — push, then sync again"); continue
