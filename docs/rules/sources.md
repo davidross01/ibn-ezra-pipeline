@@ -36,7 +36,7 @@ Where the texts come from, which accounts are used, and how drafts, final PDFs a
 **Why.** "The full book is at the upload limit — don't upload to Drive then, just have in each parasha, but put 01 PARASHA_NAME to make it in order." *Ruling 79.*
 
 ### 6. How the book is made, kept in Drive and kept current
-**Rule.** These documents — Start here, the handoff, the README, the rulings, the rules, the core skill and the history — are Google Docs in the private, numbered folder "-03 How it is made" inside "Ibn Ezra on the Torah - PDFs" (limited access, so the book's public link does not open them). They are copies of the files in the repository:
+**Rule.** These documents — Start here, the handoff, the README, the rulings, the rules, the core skill, the history and the commentator's profiles — are Google Docs in the private, numbered folder "-03 How it is made" inside "Ibn Ezra on the Torah - PDFs" (limited access, so the book's public link does not open them). They are copies of the files in the repository:
 - they are **refreshed in place**, so their links never change, whenever a rule or a document changes, in the same session;
 - an out-of-date copy is **flagged** by the checks;
 - a **comment you leave** on one of them is read at the start of the next session and taken as a ruling (or answered, if it is a question), and the reply is left under your comment;
