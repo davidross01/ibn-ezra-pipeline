@@ -436,7 +436,7 @@ def make_release(dry=False, budget=150):
     except Exception:
         rel = None
     if rel and rel.get('id'):
-        have = {a['name'] for a in (_run('GITHUB_LIST_RELEASE_ASSETS', {'owner': OWNER, 'repo': REPO, 'release_id': rel['id']}, account=GITHUB) or [])}
+        have = {a['name'] for a in (rel.get('assets') or [])}      # the release already lists its assets
     else:
         have = set()
         if dry:
