@@ -7,12 +7,13 @@ core skill and history (docs/rules/sources.md, rule 6). The repo files are the s
     python3 -I scripts/handbook.py --check   # list the copies that are out of date (exit 0; --strict exits 1)
     python3 -I scripts/handbook.py --ci      # the same as GitHub warnings (CI); never fails the run
 
-The manifest is docs/handbook.json: [{n, title, src, doc, src_md5, html_md5, drive_md5, refreshed}]. build sets
+The manifest is docs/handbook.json: [{n, title, src, doc, folder?, src_md5, html_md5, drive_md5, refreshed}]: 00–15 in
+"-03 How it is made"; with `folder`, another private folder (G00 the guide, S01… the skills, A01… the audit). build sets
 src_md5/html_md5; sync_handbook() sets drive_md5/refreshed after replacing the Doc's content and commits the manifest.
 A copy is out of date when its source changed since the last build ("build"), or the last build is not yet in Drive
 ("refresh in Drive").
 """
-import hashlib, json, os, re, subprocess, sys
+import glob, hashlib, json, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAN = os.path.join(ROOT, 'docs', 'handbook.json')
@@ -72,7 +73,7 @@ def status_md():
 
 def source_text(e):
     t = open(os.path.join(ROOT, e['src']), encoding='utf-8').read()
-    if e['src'] == 'docs/rules/CORE_SKILL.md':           # the skill's frontmatter is not for the reader
+    if e['src'] == 'docs/rules/CORE_SKILL.md' or e['src'].startswith('docs/skills/'):   # a skill's frontmatter is not for the reader
         t = re.sub(r'\A---\n.*?\n---\n', '', t, flags=re.S)
     if '<!-- status -->' in t:
         t = t.replace('<!-- status -->', status_md())
@@ -81,6 +82,7 @@ def source_text(e):
 
 def build(M):
     os.makedirs(OUTDIR, exist_ok=True)
+    subprocess.run([sys.executable, '-I', os.path.join(ROOT, 'scripts', 'drive_guide.py')], check=True, capture_output=True)
     for e in M:
         raw = open(os.path.join(ROOT, e['src']), 'rb').read()
         html = subprocess.run(['pandoc', '-f', 'gfm', '-t', 'html5', '-s', '--metadata', f"pagetitle={e['title']}"],
@@ -102,6 +104,11 @@ def stale(M=None):
             out.append((e['n'], e['title'], 'no Google Doc yet: create it in the folder, then sync_handbook()'))
         elif e.get('drive_md5') != e.get('html_md5'):
             out.append((e['n'], e['title'], 'not yet refreshed in Drive: sync_handbook() in the workbench'))
+    have = {e['src'] for e in M or load()}            # everything is on Drive too (sources.md, rule 11)
+    for src in sorted(glob.glob(os.path.join(ROOT, 'docs', 'skills', '*.md')) + glob.glob(os.path.join(ROOT, 'docs', 'profiles', '*.md'))):
+        rel = os.path.relpath(src, ROOT)
+        if rel not in have:
+            out.append(('--', rel, 'not in docs/handbook.json, so not on Drive: add an entry and a Google Doc'))
     return out
 
 

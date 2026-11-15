@@ -12,7 +12,7 @@
 #
 # Accounts: David's own Google account only (davross846@gmail.com). Never the default
 # Going Pro / filmgoingpro accounts.
-import io, json, re, hashlib, contextlib, datetime, requests
+import io, json, os, re, hashlib, contextlib, datetime, requests
 
 OWNER, REPO, REF = 'davidross01', 'ibn-ezra-commentary', 'main'
 DOCS = 'googledocs_spinet-dirk'      # davross846
@@ -261,17 +261,17 @@ def _drive_ls(folder):
     return d.get('files', [])
 
 
-def _upload(local, name, file_id=None, parent=None):
+def _upload(local, name, file_id=None, parent=None, mimetype='application/pdf'):
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
         up, e = upload_local_file(local)
     if e:
         raise RuntimeError(f'upload {name}: {e}')
-    f = {'name': name, 'mimetype': 'application/pdf', 's3key': up['s3key']}
+    f = {'name': name, 'mimetype': mimetype, 's3key': up['s3key']}
     if file_id:
         _run('GOOGLEDRIVE_UPLOAD_UPDATE_FILE', {'fileId': file_id, 'file_to_upload': f}, account=DRIVE)
         return file_id
-    d = _run('GOOGLEDRIVE_CREATE_FILE', {'name': name, 'parents': [parent], 'mimeType': 'application/pdf',
+    d = _run('GOOGLEDRIVE_CREATE_FILE', {'name': name, 'parents': [parent], 'mimeType': mimetype,
                                           'file_to_upload': f}, account=DRIVE)
     return d.get('id')
 
@@ -282,7 +282,12 @@ def drive_plan(tree=None):
     book = gh_json('book.json')
     # The full book is not kept on Drive (David, 29 Oct 2026: over the 5 MB upload limit); readers use the
     # front matter plus the parasha files, which are numbered in Torah order ("01 Bereshit.pdf") so Drive lists them in order.
-    plan = {'02': [], '03': [], '04': [], '05': []}
+    plan = {'02': [], '03': [], '04': [], '05': [], '06': []}
+    # "06 Plain text": the whole book as plain text, the parts export (David, 15 Nov 2026: Drive is a second way to everything)
+    for part, label in (('chumash_hebrew', 'The verses in Hebrew'), ('chumash_english', 'The verses in English'),
+                        ('ibn_ezra_hebrew', 'Ibn Ezra in Hebrew'), ('ibn_ezra_english', 'Ibn Ezra in English'), ('notes', 'The notes')):
+        if f'export/{part}.txt' in tree:
+            plan['06'].append((f'Ibn Ezra on the Torah - {label}.txt', f'export/{part}.txt', None))
     plan['02'] = [('Ibn Ezra on the Torah - Front Matter.pdf', 'front/Ibn Ezra on the Torah - Front Matter.pdf', None)]
     if 'back/Ibn Ezra on the Torah - Glossary.pdf' in tree:   # the glossary at the back of the book (David, 9 Nov 2026)
         plan['02'].append(('Ibn Ezra on the Torah - Glossary.pdf', 'back/Ibn Ezra on the Torah - Glossary.pdf', None))
@@ -327,20 +332,22 @@ def refresh_drive(dry=False):
             if len(data) > 5 * 1024 * 1024:
                 log.append(f'!! {name}: {len(data)//1024} KB, over the 5 MB upload limit'); continue
             md5 = hashlib.md5(data).hexdigest()
-            local = '/mnt/files/drive_' + hashlib.sha1(path.encode()).hexdigest()[:10] + '.pdf'
+            ext = os.path.splitext(path)[1] or '.pdf'
+            mt = 'text/plain' if ext == '.txt' else 'application/pdf'
+            local = '/mnt/files/drive_' + hashlib.sha1(path.encode()).hexdigest()[:10] + ext
             if hit:
                 f = hit[0]; used.add(f['id'])
                 if f.get('md5Checksum') == md5 and f['name'] == name:
                     same += 1; continue
                 if not dry:
                     if f.get('md5Checksum') != md5:
-                        open(local, 'wb').write(data); _upload(local, name, file_id=f['id'])
+                        open(local, 'wb').write(data); _upload(local, name, file_id=f['id'], mimetype=mt)
                     if f['name'] != name:
                         _run('GOOGLEDRIVE_UPDATE_FILE_PUT', {'fileId': f['id'], 'name': name}, account=DRIVE)
                 log.append(f'{pre} updated: {name}' + (f' (was {f["name"]})' if f['name'] != name else ''))
             else:
                 if not dry:
-                    open(local, 'wb').write(data); _upload(local, name, parent=fid)
+                    open(local, 'wb').write(data); _upload(local, name, parent=fid, mimetype=mt)
                 log.append(f'{pre} added: {name}')
         for f in files:
             if f['id'] in used:
@@ -561,8 +568,12 @@ def sync_handbook(dry=False):
     onto the same Doc (Drive converts text/html), so the id and link never change; a changed title is fixed. A Doc with
     an open comment is skipped (replacing its text would detach the comment): answer it first. Commits handbook.json
     with drive_md5 / refreshed. Run `python3 -I scripts/handbook.py build` and push first."""
-    _private_folder(HANDBOOK_FOLDER_ID, HANDBOOK_FOLDER)
     hb = gh_json('docs/handbook.json')
+    # 00–15 live in "-03 How it is made"; an entry with `folder` lives in another private folder (the guide, the skills,
+    # the audit: David, 15 Nov 2026, "everything also in the Google Drive"). Every one must be limited-access.
+    targets = {HANDBOOK_FOLDER_ID: HANDBOOK_FOLDER, **{e['folder']: e['title'] for e in hb if e.get('folder')}}
+    for fid, nm in targets.items():
+        _private_folder(fid, nm)
     log, changed = [], False
     for e in hb:
         if not e.get('doc'):
@@ -594,8 +605,9 @@ def sync_handbook(dry=False):
             raise RuntimeError(f"{e['title']}: no longer a Google Doc after the upload ({_find(m, 'mimeType')})")
         if _find(m, 'name') != e['title']:
             _run('GOOGLEDRIVE_UPDATE_FILE_PUT', {'fileId': e['doc'], 'name': e['title']}, account=DRIVE)
-        if HANDBOOK_FOLDER_ID not in (_find(m, 'parents') or []):
-            _move_into(e['doc'], HANDBOOK_FOLDER_ID)
+        target = e.get('folder') or HANDBOOK_FOLDER_ID
+        if target not in (_find(m, 'parents') or []):
+            _move_into(e['doc'], target)
         e['drive_md5'], e['refreshed'] = e['html_md5'], datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%MZ')
         e.pop('retitle', None)
         changed = True
@@ -604,8 +616,8 @@ def sync_handbook(dry=False):
         gh_commit({'docs/handbook.json': json.dumps(hb, ensure_ascii=False, indent=1) + '\n'},
                   'Handbook: Google Docs refreshed in place (sync_handbook)\n\n'
                   'Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>')
-    known = {e.get('doc') for e in hb}
-    for f in _drive_ls(HANDBOOK_FOLDER_ID):
+    known = {e.get('doc') for e in hb} | {'1_uiuWQXAHtD6pEtRZ-9ebwx1jV5wmIw3k_XXfzZhmVk'}   # + the Editorial record (a review doc, kept in -03)
+    for f in [f for fid in targets for f in _drive_ls(fid)]:
         if f['id'] not in known:
             log.append(f"-- left alone, not in docs/handbook.json: {f['name']} ({f['id']})")
     print('\n'.join(log) or 'handbook: every Doc already current')

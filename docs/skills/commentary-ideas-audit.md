@@ -7,7 +7,7 @@ description: "Go through a written parasha of David's Ibn Ezra series and make i
 
 Use this skill when David asks to bring the idea notes of a parasha that is already written up to date with Saadia and Ibn Ezra's own writings, adding sentences only. These were the Ideas Audits of 8 Nov; since 9 Nov, notes are written in the old style, one paragraph per idea (notes.md, "Idea notes in the old style"). It began with the rule of 8 Nov 2026 ("give each idea paragraph a fixed order; bring in Saadia on the same idea, not just the same verse; use Ibn Ezra to explain Ibn Ezra first; keep a limit"). It also applies when he asks to "go through the parashot and make a review sheet" for them. For a new parasha's draft, use **ibn-ezra-idea-notes** instead: the paragraphs are written in the fixed order from the start and go into that draft's own Ideas Part.
 
-Load **commentary-house-rules** first. The rule is in docs/rules/notes.md, under "Idea notes: a fixed order, Ibn Ezra first, Saadia, and a limit"; the review rules are in docs/rules/review.md. The repo is davidross01/ibn-ezra-commentary at /home/claude/ibn-ezra-commentary, and its copy of this skill is docs/skills/commentary-ideas-audit.md. Model rows files: `review_audit/ideas_ber_rows.py` (15 rows), `ideas_noach_rows.py`, `ideas_ll_rows.py`, `ideas_vay_rows.py` and `ideas_cs_rows.py`. Shared helpers (`ec_en`, `plain`, `PARTS`, `cfg`) are in `review_audit/ideas_common.py`.
+Load **commentary-house-rules** first, then read **docs/profiles/ibn-ezra.md**, section 6 (the sources for his ideas, in order, and those never used). The rules are docs/rules/notes.md, rules 9-13 (the rule of 8 Nov, "a fixed order", is replaced by rule 11, "Idea notes in the old style"), and docs/rules/review.md; they win over the profile and over this skill. The repo is davidross01/ibn-ezra-commentary at /home/claude/ibn-ezra-commentary, and its copy of this skill is docs/skills/commentary-ideas-audit.md. Model rows files: `review_audit/ideas_ber_rows.py` (15 rows), `ideas_noach_rows.py`, `ideas_ll_rows.py`, `ideas_vay_rows.py` and `ideas_cs_rows.py`. Shared helpers (`ec_en`, `plain`, `PARTS`, `cfg`) are in `review_audit/ideas_common.py`.
 
 ## 1. List the places
 - `<folder>/review/ideas.json` lists every idea place of the parasha ("done …", "kept as it was …", "not needed: …").
@@ -28,7 +28,7 @@ The shell cannot reach Sefaria, so fetch in the Composio workbench.
   - X: conduct (X:7 astrology, X:18 music)
   Search by idea with keywords (strip niqqud first), not only by verse. Wherever Ibn Ezra cites "the Gaon", find the place.
 - Fetch each text again just before writing its sentence, quote from what you fetched, and check the chapter number in the ref. Save long texts under `review_audit/sources/` if a later round will need them.
-- Never use Krinsky's Mechokekei Yehudah or Aristotle, and never name the Strickman–Silver English.
+- Never use a source the profile (section 6) rules out, and never name the Strickman–Silver English.
 
 ## 3. Write the rows (add sentences only)
 - Each row adds one sentence, or two at most when they belong together. Anchor it after an exact English sentence of the note: `ops=[('notes', (c, v), '<anchor>', '<anchor> <added>')]`. The anchor must occur exactly once in that verse's notes, or make_rows stops. Nothing already in the note is rewritten.
