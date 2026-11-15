@@ -268,6 +268,12 @@ def _upload(local, name, file_id=None, parent=None, mimetype='application/pdf'):
     if e:
         raise RuntimeError(f'upload {name}: {e}')
     f = {'name': name, 'mimetype': mimetype, 's3key': up['s3key']}
+    if os.path.getsize(local) > 4 * 1024 * 1024:     # the plain upload stops at 5 MB; the resumable one has no such limit
+        args = {'file_to_upload': f, 'chunkSize': 4 * 262144}
+        if file_id: args['file_id'] = file_id
+        else: args.update(folder_to_upload_to=parent, metadata={'name': name, 'parents': [parent]})
+        d = _run('GOOGLEDRIVE_RESUMABLE_UPLOAD', args, account=DRIVE)
+        return file_id or (d.get('id') if isinstance(d, dict) else None)
     if file_id:
         _run('GOOGLEDRIVE_UPLOAD_UPDATE_FILE', {'fileId': file_id, 'file_to_upload': f}, account=DRIVE)
         return file_id
@@ -280,9 +286,13 @@ def drive_plan(tree=None):
     """{folder prefix: [(drive name, repo path, match prefix or None)]} from book.json and the repo tree."""
     tree = tree or gh_tree()
     book = gh_json('book.json')
-    # The full book is not kept on Drive (David, 29 Oct 2026: over the 5 MB upload limit); readers use the
-    # front matter plus the parasha files, which are numbered in Torah order ("01 Bereshit.pdf") so Drive lists them in order.
+    # The parasha files are numbered in Torah order ("01 Bereshit.pdf") so Drive lists them in order. The full book is on
+    # Drive too, first in "03 Parashot" as "00 …" (David, 15 Nov 2026, Ruling 114: "I want the full book on drive, even
+    # for Ibn Ezra"); it is over 5 MB, so _upload sends it by the resumable upload.
     plan = {'02': [], '03': [], '04': [], '05': [], '06': []}
+    full = sorted(p for p in tree if p.startswith('book/Ibn Ezra on the Torah - Bereshit to') and p.endswith('.pdf'))
+    if full:
+        plan['03'].append(('00 ' + full[-1].split('/')[-1], full[-1], '00 Ibn Ezra on the Torah - Bereshit to'))
     # "06 Plain text": the whole book as plain text, the parts export (David, 15 Nov 2026: Drive is a second way to everything)
     for part, label in (('chumash_hebrew', 'The verses in Hebrew'), ('chumash_english', 'The verses in English'),
                         ('ibn_ezra_hebrew', 'Ibn Ezra in Hebrew'), ('ibn_ezra_english', 'Ibn Ezra in English'), ('notes', 'The notes')):
@@ -329,8 +339,6 @@ def refresh_drive(dry=False):
             hit = [f for f in files if f['name'] == name] or ([f for f in files if prefix and f['name'].startswith(prefix)] if prefix else [])
             # an older name (prefix) is renamed in place, so the file keeps its link
             data = gh_bytes(path)
-            if len(data) > 5 * 1024 * 1024:
-                log.append(f'!! {name}: {len(data)//1024} KB, over the 5 MB upload limit'); continue
             md5 = hashlib.md5(data).hexdigest()
             ext = os.path.splitext(path)[1] or '.pdf'
             mt = 'text/plain' if ext == '.txt' else 'application/pdf'
@@ -392,7 +400,65 @@ def refresh_drive(dry=False):
         sync_reviews(dry=dry)          # the reviews-in-progress folder, every time the Drive is refreshed
     except Exception as ex:
         print(f'  !! reviews folder not synced: {ex}')
+    try:
+        make_release(dry=dry)          # a GitHub Release of the current version (Ruling 115)
+    except Exception as ex:
+        print(f'  !! release not made: {ex}')
     return {'changes': log, 'same': same, 'mismatch': bad}
+
+
+# ---------------------------------------------------------------- GitHub Releases (David, 15 Nov 2026, Ruling 115)
+# "It doesn't have to be finished, it can be the most up to date": every publish makes a Release of the current version
+# (checkboxes: every publish, automatically). The tag is the edition date and a fingerprint of what was built
+# (book.json's built_hash of each parasha and the front matter's hash), so a refresh with nothing new makes none.
+GITHUB = 'github_cosse-palay'      # davidross01
+
+def release_files(tree=None):
+    tree = tree or gh_tree()
+    book = gh_json('book.json')
+    out = sorted(p for p in tree if p.startswith('book/Ibn Ezra on the Torah - Bereshit to') and p.endswith('.pdf'))
+    out += [p for p in ('front/Ibn Ezra on the Torah - Front Matter.pdf', 'back/Ibn Ezra on the Torah - Glossary.pdf') if p in tree]
+    for e in book['parashot']:
+        P, folder = e['parasha'], e['folder']
+        out += [p for p in (f'{folder}/Ibn Ezra on Parashat {P}.pdf', f'insights/Ibn Ezra on Parashat {P} - Key Insights.pdf') if p in tree]
+    return out, book
+
+def make_release(dry=False, budget=150):
+    import time
+    t0 = time.time()
+    tree = gh_tree()
+    files, book = release_files(tree)
+    fp = hashlib.sha1(json.dumps([e.get('built_hash') for e in book['parashot']] + [book.get('front_hash')]).encode()).hexdigest()[:8]
+    date = max(e.get('edition', '') for e in book['parashot']) or datetime.date.today().isoformat()
+    tag = f'edition-{date}-{fp}'
+    try:
+        rel = _run('GITHUB_GET_A_RELEASE_BY_TAG_NAME', {'owner': OWNER, 'repo': REPO, 'tag': tag}, account=GITHUB)
+    except Exception:
+        rel = None
+    if rel and rel.get('id'):
+        have = {a['name'] for a in (_run('GITHUB_LIST_RELEASE_ASSETS', {'owner': OWNER, 'repo': REPO, 'release_id': rel['id']}, account=GITHUB) or [])}
+    else:
+        have = set()
+        if dry:
+            print(f'DRY RUN — release {tag}: {len(files)} files'); return tag
+        names = ', '.join(e['parasha'] for e in book['parashot'])
+        rel = _run('GITHUB_CREATE_A_RELEASE', {'owner': OWNER, 'repo': REPO, 'tag_name': tag, 'target_commitish': REF,
+                    'name': f'Ibn Ezra on the Torah — edition of {date}',
+                    'body': f'The current version of every file ({names}): the full book, the front matter and glossary, each parasha and its Key Insights booklet. Made automatically when the book was published (Ruling 115).'}, account=GITHUB)
+    todo = [p for p in files if p.split('/')[-1] not in have]
+    for p in todo:
+        if time.time() - t0 > budget:
+            print(f'release {tag}: {len(todo) - todo.index(p)} file(s) left; run make_release() again'); return tag
+        local = '/mnt/files/rel_' + hashlib.sha1(p.encode()).hexdigest()[:10] + '.pdf'
+        open(local, 'wb').write(gh_bytes(p))
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            up, e = upload_local_file(local)
+        if e: raise RuntimeError(f'upload {p}: {e}')
+        _run('GITHUB_UPLOAD_RELEASE_ASSET', {'owner': OWNER, 'repo': REPO, 'release_id': rel['id'], 'content_type': 'application/pdf',
+                                             'asset': {'name': p.split('/')[-1], 'mimetype': 'application/pdf', 's3key': up['s3key']}}, account=GITHUB)
+    print(f'release {tag}: ' + (f'{len(todo)} file(s) added' if todo else 'already complete') + f', {len(files)} in all')
+    return tag
 
 
 # ---------------------------------------------------------------- reviews in progress (David, 9 Nov 2026)

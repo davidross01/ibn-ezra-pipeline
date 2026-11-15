@@ -20,9 +20,9 @@ def main():
          'Everything of “Ibn Ezra on the Torah” can be reached from here: the book, the reviews, how it is made, the skills '
          'and the audit. The GitHub repository is the source; these are its copies, kept current. Folders whose name starts '
          'with “-” are private; the others are open to anyone with the book’s link.', '',
-         f'Made by scripts/drive_guide.py; the full book (over Drive’s upload limit, Ruling 79) is on GitHub: '
+         f'Made by scripts/drive_guide.py. The full book is first in “03 Parashot” (Ruling 114), and on GitHub: '
          f'[{os.path.basename(gh["full_book"])}]({gh["repo"]}/blob/main/{urllib.parse.quote(gh["full_book"])}). '
-         f'Each finished edition is also a [GitHub Release]({gh["releases"]}).', '',
+         f'Every published version is also a [GitHub Release]({gh["releases"]}) (Ruling 115).', '',
          '## The folders', '']
     for f in D['folders']:
         L.append(f'- [{f["name"]}]({FOLDERURL.format(f["id"])}) — {f["holds"]}' + (' (private)' if f['private'] else ''))

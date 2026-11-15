@@ -28,12 +28,12 @@ Where the texts come from, which accounts are used, and how drafts, final PDFs a
 
 **Why.** You see every draft, and only when there is something to decide or to read.
 
-### 5. The Drive folder: no full book; parashot numbered in order
-**Rule.** The full book is still built (on GitHub) but not put on Drive. In "03 Parashot" each final parasha is "NN <Parasha>.pdf", and in "04 Key Insights" "NN <Parasha> - Key Insights.pdf", NN being its place in the Torah. Files are replaced in place, so their links stay the same.
+### 5. The Drive folder: the full book first, then the parashot numbered in order
+**Rule.** The full book is on Drive too, first in "03 Parashot" as "00 Ibn Ezra on the Torah - Bereshit to …", replaced in place each time the book is published, whatever its size. In "03 Parashot" each final parasha is "NN <Parasha>.pdf", and in "04 Key Insights" "NN <Parasha> - Key Insights.pdf", NN being its place in the Torah. Files are replaced in place, so their links stay the same.
 
 **Example.** 01 Bereshit, 02 Noach, … 05 Chayei Sarah.
 
-**Why.** "The full book is at the upload limit — don't upload to Drive then, just have in each parasha, but put 01 PARASHA_NAME to make it in order." *Ruling 79.*
+**Why.** "The full book is at the upload limit — don't upload to Drive then, just have in each parasha, but put 01 PARASHA_NAME to make it in order." And later: "I want the full book on drive, even for Ibn Ezra." *Rulings 79, 114.*
 
 ### 6. How the book is made, kept in Drive and kept current
 **Rule.** These documents — Start here, the handoff, the README, the rulings, the rules, the core skill, the history and the commentator's profiles — are Google Docs in the private, numbered folder "-03 How it is made" inside "Ibn Ezra on the Torah - PDFs" (limited access, so the book's public link does not open them). They are copies of the files in the repository:
@@ -51,12 +51,12 @@ A copy is never refreshed while it has an open comment of yours, so the comment 
 
 **Why.** Mistakes are caught the moment they are made. *Ruling 80.*
 
-### 8. Each finished edition is a GitHub Release
-**Rule.** Each finished edition (parasha PDFs, booklets, front matter, full book) is published as a GitHub Release, tagged by date. Claude cannot create Releases from here, so you create it on github.com (Releases → "Draft a new release") with the files listed by Claude.
+### 8. Every published version is a GitHub Release
+**Rule.** Each time the book is published, the current version — the full book, the front matter and glossary, each parasha and its Key Insights booklet — becomes a GitHub Release, tagged by its edition date, made by Claude. It need not be a finished edition: the latest version is enough. A publish that changed nothing makes no new Release.
 
-**Example.** The first is "editions-2026-10-29", the edition before the audit.
+**Example.** The first is "editions-2026-10-29", the edition before the audit; later ones are "edition-<date>-<fingerprint>".
 
-**Why.** A fixed copy of every edition. *Ruling 81.*
+**Why.** A fixed copy of every version. "It doesn't have to be finished, it can be the most up to date." *Rulings 81, 115.*
 
 ### 9. When a parasha becomes final
 **Rule.** Making a parasha final is one chain, all at once: the final PDF, its parts exported as separate files, its Key Insights booklet rebuilt (the booklet's page references come from the final build), the full book rebuilt, the key to terms and the front matter brought up to date, the Drive folder refreshed, and its review docs archived.
@@ -91,10 +91,10 @@ A copy is never refreshed while it has an open comment of yours, so the comment 
 - **Rule 3:** the workbook is in David's Drive; its Appendix B is the glossary; quotations at 1:1, 11:1, 22:1. Useful for later parashot.
 - **Reading a review doc:** it gets large (about 2–3 MB through the API). Never read a whole review doc into the conversation: run `read_answers('<key>')` from scripts/workbench/wb.py in the Composio workbench (load line at the top of wb.py). It keeps only ID / Decision / Your note, saves `<rows file>` → answers.json to GitHub and prints a short summary; then `git pull` and read the JSON. The rows' own text is in the repo's rows file. If David's phone can't open a doc, start a new, smaller doc for the next round.
 - **Rule 4:** send drafts with SendUserFile; then `refresh_drive()` after the push puts them in "05 Drafts".
-- **Rule 5:** `refresh_drive()` (scripts/workbench/wb.py) does the numbering and renames older names in place, so links stay. The booklets are PDFs only; no Google Doc copies.
+- **Rule 5:** `refresh_drive()` (scripts/workbench/wb.py) does the numbering and renames older names in place, so links stay. The full book goes into "03 Parashot" as "00 …"; files over 4 MB go by GOOGLEDRIVE_RESUMABLE_UPLOAD (no 5 MB limit). The booklets are PDFs only; no Google Doc copies.
 - **Rule 6:** the folder is id 1ALbmTB3lrzR4Md2y_1mLeXAremu0kZMP. `docs/handbook.json` lists every document (number, title, source, Google Doc id, and the checksums of the last build and the last refresh). `python3 -I scripts/handbook.py build` makes the HTML copies in docs/handbook/ (the Start here copy with the live status from series_status.py); in the workbench `sync_handbook()` replaces each changed doc's content in place (same id, same link), skips a doc with an open comment, and records the refresh; `handbook_comments()` lists David's open comments. `python3 -I scripts/handbook.py --check` lists the copies out of date (series_status prints it; CI warns). The weekly scheduled task is "Ibn Ezra — weekly handbook refresh". The steps are in docs/HANDOFF.md, "Keeping the documents current".
 - **Rule 7:** .github/workflows/checks.yml runs `scripts/check_all.py <parasha> --ci` for each parasha, plus `scripts/rulings.py --check`, `scripts/cite_check.py` and the handbook check (a warning only). In CI the layout and pages checks are skipped (no build there) and Ideas are listed, not failed.
-- **Rule 8:** the files to attach are listed by finalize-parasha.
+- **Rule 8:** `make_release()` (wb.py), run at the end of every `refresh_drive()`: tag `edition-<latest edition date>-<fingerprint of book.json's built_hash values and front_hash>`; if the tag exists it only adds missing files (re-run if the cell's time budget stops it). GitHub account `github_cosse-palay` (davidross01).
 - **Rule 10:** `python3 -I scripts/publish_current.py` (`--dry` for the plan, `--force <folders|all>`) after every applied change, then commit, push and `refresh_drive()`. book.json keeps per parasha `stage` (draft / final / audit), `edition` (ISO date) and `built_hash` (scripts/stage.py, `content_hash`: the model, parasha.json without first_page, foot terms, the build scripts; Bereshit's front.json only for its own title page), and `front_hash` for bereshit/data/front.json. A content change sets the edition to today and moves a final parasha to audit; a renumbering alone keeps the edition. A draft not yet committed is replaced; a committed one gets a new number. It stops on a layout warning, on a Chromium version other than book.json's, and when check_all is not clean. series_status prints the stage and edition, and warns "changed since the current edition". Code that asks whether a parasha is published uses `stage.published()` (final or audit), never `status.startswith('final')`.
 - **Held changes (rule 10):** when David asks for a change to come in only at a later build, it is not applied to the data. book.json "held" lists it: the ruling, what it changes, the script that makes it, "at" (the parasha whose final ends the hold), the parashot it touches. Its rule is written at once and a new parasha follows it from draft 1. series_status prints it; publish_current.py runs the script when the parasha in "at" is published, removes the entry and rebuilds what changed in the same run; check_all checks the held parashot for what they still say.
 - **Rule 9:** the finalize-parasha skill: `python3 scripts/export_parts.py` (the five parts as separate files), `python3 insights/booklet.py <Parasha>` (the davar Torah's quoted English in insights/davar.py must match the book, so change it with the book), `review_round/key_add_parasha.py`, `python3 scripts/publish_pdfs.py --rebuild` (full book and glossary), `refresh_drive()`, archiving.
