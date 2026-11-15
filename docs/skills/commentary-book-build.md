@@ -9,6 +9,8 @@ Use for David's translated-commentary series (Ibn Ezra), when starting a new par
 
 Load **commentary-house-rules** first. It holds the standing rules (translation, Hebrew letters, misprint form, transliteration, Hashem, place names transliterated, only answered review rows) and the page look: verse band, section marks, Hebrew then English commentary, notes, the glossary strip at the foot of each page, front and back matter. This skill adds only how the book is built. Making a parasha final is the **finalize-parasha** skill.
 
+Read the commentator's profile too, **docs/profiles/ibn-ezra.md**: his kinds of comment and what each note owes the reader (section 4), the commentators in the notes and when each gets a line (section 5), and his vocabulary (section 7). A draft is written to the profile from draft 1. Run the term sheet (commentary-term-sheet) on draft 1 before it is sent, and the sense reading (commentary-sense-read) before the parasha is made final. For a book on another commentator, its own profile takes the place of this one (commentary-new-commentator).
+
 **Nothing in the book changes until David answers it in a review list.** A change he asks for in chat, or one Claude suggests, becomes a new review row (with its explanation) and is applied only after he says the review is done (David, Oct 2026). A trial build to measure a change is fine, but don't commit or send it as the draft.
 
 ## Markup in the model (rendered by render.py)
