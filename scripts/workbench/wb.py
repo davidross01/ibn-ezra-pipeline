@@ -63,11 +63,18 @@ def _ptext(cell):
     return ' '.join(x.strip() for x in out if x.strip())
 
 
-def _chip(cell):
+_OPT = {'approve': 'Approve', 'keep': 'Keep', 'change': 'Change', 'discuss': 'Discuss', 'unans': 'Unanswered'}
+
+def _chip(cell, canonical=False):
+    """The chosen chip's words; canonical=True gives Approve / Keep / Change / Discuss / Unanswered from the option id
+    (a row's own choices, Ruling 116, have the option ids approve and keep)."""
     for s in cell.get('content', []):
         for e in s.get('paragraph', {}).get('elements', []):
-            dv = e.get('dropdown', {}).get('dropdownProperties', {}).get('displayValue')
+            dp = e.get('dropdown', {}).get('dropdownProperties', {})
+            dv = dp.get('displayValue')
             if dv:
+                if canonical:
+                    return _OPT.get((dp.get('selectedOptionId') or '').split('.')[-1], dv)
                 return dv
     return None
 
@@ -183,10 +190,11 @@ def read_answers(key, commit=True, show=True, check_links=True, meta=None, progr
             if not rid or rid in seen:
                 continue
             seen.add(rid)
-            dec = _chip(cells[cd]) or _ptext(cells[cd]) or 'Unanswered'
+            words = _chip(cells[cd])
+            dec = _chip(cells[cd], canonical=True) or _ptext(cells[cd]) or 'Unanswered'
             note = _ptext(cells[cn]) if cn is not None else ''
-            chosen = labels.get(rid, {}).get(dec)
-            rows.append({'id': rid, 'decision': chosen or dec, 'note': note, **({'chip': dec} if chosen else {})})
+            chosen = labels.get(rid, {}).get(dec) or (dec if words and words != dec else None)
+            rows.append({'id': rid, 'decision': chosen or dec, 'note': note, **({'chip': words} if words and words != (chosen or dec) else {})})
     counts = {}
     for r in rows:
         key2 = r['decision'] if not (r['decision'] == 'Unanswered' and r['note']) else 'Note only'
