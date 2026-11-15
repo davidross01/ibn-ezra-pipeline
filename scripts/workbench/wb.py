@@ -423,6 +423,9 @@ def release_files(tree=None):
         out += [p for p in (f'{folder}/Ibn Ezra on Parashat {P}.pdf', f'insights/Ibn Ezra on Parashat {P} - Key Insights.pdf') if p in tree]
     return out, book
 
+def _asset_key(name):
+    return re.sub(r'[^A-Za-z0-9]', '', name).lower()
+
 def make_release(dry=False, budget=150):
     import time
     t0 = time.time()
@@ -436,7 +439,7 @@ def make_release(dry=False, budget=150):
     except Exception:
         rel = None
     if rel and rel.get('id'):
-        have = {a['name'] for a in (rel.get('assets') or [])}      # the release already lists its assets
+        have = {_asset_key(a['name']) for a in (rel.get('assets') or [])}      # GitHub turns spaces into dots in asset names
     else:
         have = set()
         if dry:
@@ -445,7 +448,7 @@ def make_release(dry=False, budget=150):
         rel = _run('GITHUB_CREATE_A_RELEASE', {'owner': OWNER, 'repo': REPO, 'tag_name': tag, 'target_commitish': REF,
                     'name': f'Ibn Ezra on the Torah — edition of {date}',
                     'body': f'The current version of every file ({names}): the full book, the front matter and glossary, each parasha and its Key Insights booklet. Made automatically when the book was published (Ruling 115).'}, account=GITHUB)
-    todo = [p for p in files if p.split('/')[-1] not in have]
+    todo = [p for p in files if _asset_key(p.split('/')[-1]) not in have]
     for p in todo:
         if time.time() - t0 > budget:
             print(f'release {tag}: {len(todo) - todo.index(p)} file(s) left; run make_release() again'); return tag
