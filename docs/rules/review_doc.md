@@ -109,7 +109,7 @@ The whole build below is scripted in `scripts/review_doc.py` at the top of david
 - Decision cell holds a dropdown chip; Your note holds David's text (and any screenshot he attached, as an inline image under the text).
 - Header row pinned (`pinTableHeaderRows`, 1).
 - Document is PAGELESS (`updateDocumentStyle` documentFormat.documentMode = PAGELESS) so wide tables scroll sideways instead of squeezing.
-- Column widths (FIXED_WIDTH, PT): ID 40; short context 70–130; long text 170–300; Sefaria 60; Decision 95 (fits the chip); Your note 200–220; Explanation 75.
+- Column widths (FIXED_WIDTH, PT): ID 40; short context 70–130; long text 170–300 (the Now and Alternative columns are always exactly the same width, 220 as the default; make_rows stops otherwise); Sefaria 60; Decision 95 (fits the chip); Your note 200–220; Explanation 75.
 
 ### House design (rule 4; match exactly)
 | Element | Font | Weight | Colour |
