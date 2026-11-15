@@ -160,6 +160,14 @@ def read_answers(key, commit=True, show=True, check_links=True, meta=None, progr
     doc = _unwrap(_run('GOOGLEDOCS_GET_DOCUMENT_BY_ID', {'id': meta['id'], 'includeTabsContent': True}, account=DOCS))
     body, title = _first_tab_body(doc)
     rows, seen = [], set()
+    rf = meta.get('rows_file') or ''
+    # Ruling 116: a row's own two choices are read back as Approve (the first) and Keep (the second)
+    try:
+        _rr = gh_json(rf) if rf else []
+        _rr = _rr if isinstance(_rr, list) else (_rr or {}).get('rows', [])
+        labels = {x['id']: {x['choices'][0]: 'Approve', x['choices'][1]: 'Keep'} for x in _rr if isinstance(x, dict) and x.get('choices')}
+    except Exception:
+        labels = {}
     for el in body:
         if 'table' not in el:
             continue
@@ -177,7 +185,8 @@ def read_answers(key, commit=True, show=True, check_links=True, meta=None, progr
             seen.add(rid)
             dec = _chip(cells[cd]) or _ptext(cells[cd]) or 'Unanswered'
             note = _ptext(cells[cn]) if cn is not None else ''
-            rows.append({'id': rid, 'decision': dec, 'note': note})
+            chosen = labels.get(rid, {}).get(dec)
+            rows.append({'id': rid, 'decision': chosen or dec, 'note': note, **({'chip': dec} if chosen else {})})
     counts = {}
     for r in rows:
         key2 = r['decision'] if not (r['decision'] == 'Unanswered' and r['note']) else 'Note only'
@@ -185,7 +194,6 @@ def read_answers(key, commit=True, show=True, check_links=True, meta=None, progr
     out = {'doc_id': meta['id'], 'title': title or meta.get('title'),
            'read_at': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'),
            'counts': counts, 'rows': rows}
-    rf = meta.get('rows_file') or ''
     try:      # every row of the rows file must be in the doc, and nothing else
         rr = gh_json(rf) if rf else None
         rr = rr if isinstance(rr, list) else (rr or {}).get('rows', [])
@@ -321,10 +329,15 @@ def drive_plan(tree=None):
     return plan, finals
 
 
-def refresh_drive(dry=False):
+def refresh_drive(dry=False, budget=120):
     """Make the Drive folder match GitHub: replace changed files in place (links stay the same),
     add new ones, rename superseded drafts, trash the draft of a parasha that is now final.
-    Compares MD5, so unchanged files are left alone. Prints one line per change."""
+    Compares MD5, so unchanged files are left alone. Prints one line per change.
+    In short steps (15 Nov 2026): a workbench cell stops at 180 s, so after `budget` seconds it stops cleanly and says
+    so; run it again and it carries on (files already current are skipped). The review folder and the GitHub Release
+    follow only when there is time left; otherwise it says to run sync_reviews() and make_release() in their own cells."""
+    import time
+    t0 = time.time()
     tree = gh_tree()
     plan, finals = drive_plan(tree)
     subs = {f['name'][:2]: f['id'] for f in _drive_ls(DRIVE_ROOT) if f.get('mimeType', '').endswith('folder')}
@@ -336,6 +349,10 @@ def refresh_drive(dry=False):
         files = _drive_ls(fid)
         used = set()
         for name, path, prefix in items:
+            if time.time() - t0 > budget:
+                print(f'Drive: stopped after {int(time.time() - t0)} s with {len(log)} change(s) so far — run refresh_drive() again to carry on')
+                for x in log: print('  ' + x)
+                return {'changes': log, 'same': same, 'mismatch': [], 'stopped': True}
             hit = [f for f in files if f['name'] == name] or ([f for f in files if prefix and f['name'].startswith(prefix)] if prefix else [])
             # an older name (prefix) is renamed in place, so the file keeps its link
             data = gh_bytes(path)
@@ -396,12 +413,18 @@ def refresh_drive(dry=False):
     print(('DRY RUN — ' if dry else '') + f'Drive: {len(log)} change(s), {same} already current' + (f', {len(bad)} MISMATCH' if bad else ', verified'))
     for x in log + ['!! ' + b for b in bad]:
         print('  ' + x)
+    if time.time() - t0 > budget - 30:
+        print('  next, each in its own cell: sync_reviews(), then make_release()')
+        return {'changes': log, 'same': same, 'mismatch': bad, 'next': ['sync_reviews', 'make_release']}
     try:
         sync_reviews(dry=dry)          # the reviews-in-progress folder, every time the Drive is refreshed
     except Exception as ex:
         print(f'  !! reviews folder not synced: {ex}')
+    if time.time() - t0 > budget - 20:
+        print('  next, in its own cell: make_release()')
+        return {'changes': log, 'same': same, 'mismatch': bad, 'next': ['make_release']}
     try:
-        make_release(dry=dry)          # a GitHub Release of the current version (Ruling 115)
+        make_release(dry=dry, budget=max(20, budget - (time.time() - t0)))          # a GitHub Release of the current version (Ruling 115)
     except Exception as ex:
         print(f'  !! release not made: {ex}')
     return {'changes': log, 'same': same, 'mismatch': bad}
@@ -550,9 +573,12 @@ def archive_doc(entry):
     return folder
 
 
-def sync_reviews(dry=False):
+def sync_reviews(dry=False, budget=120):
     """Every open review doc in "Reviews in progress"; every fully applied one archived (text + answers committed) and
-    moved to "Older reviews"; every archived doc found elsewhere (the trash included) moved there too; review_docs.json updated."""
+    moved to "Older reviews"; every archived doc found elsewhere (the trash included) moved there too; review_docs.json updated.
+    Archiving takes a while per doc: after `budget` seconds it commits what is done and says to run it again."""
+    import time
+    t0 = time.time()
     reg = gh_json('review_docs.json'); docs = reg['docs']
     fid = _reviews_folder(create=not dry)
     inside = {f['id'] for f in _drive_ls(fid)} if fid else set()
@@ -569,6 +595,8 @@ def sync_reviews(dry=False):
                     _run('GOOGLEDRIVE_MOVE_FILE', {'file_id': e['id'], 'add_parents': fid}, account=DRIVE)
                 log.append(f'in progress: {e["title"]}')
         elif st == 'applied':
+            if time.time() - t0 > budget:
+                log.append(f'not yet archived (time): {e["title"]} — run sync_reviews() again'); continue
             if not dry:
                 e['archive'] = archive_doc(e); e['status'] = 'archived'; changed = True
             log.append(f'applied → archived, moved to Older reviews: {e["title"]}')

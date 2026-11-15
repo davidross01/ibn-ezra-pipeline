@@ -14,6 +14,34 @@ INK, GREY, HFILL, LINE, WHITE, LINK = '1f1e1d', '52514f', 'f5f3ee', 'e8e5dd', 'f
 OPTS = [('unans', 'Unanswered', 'f4cccc'), ('approve', 'Approve', 'd9ead3'), ('keep', 'Keep', 'cfe2f3'),
         ('change', 'Change', 'fff2cc'), ('discuss', 'Discuss', 'fce5cd')]
 DD = 'kix.decision01'
+# David, 15 Nov 2026 (Ruling 116): each row's dropdown offers its own two choices in plain words — the first does what
+# the Alternative says (read back as Approve), the second leaves the book as it is (read back as Keep) — then Change
+# and Discuss. A row gives them as `choices` [first, second]; a row without them keeps Approve / Keep. One dropdown
+# definition per pair of choices; read_answers (wb.py) turns the chosen words back into Approve / Keep from the rows file.
+import hashlib as _hl
+def choices(row):
+    c = row.get('choices') or ['Approve', 'Keep']
+    return (c[0], c[1])
+def def_id(pair):
+    return DD if pair == ('Approve', 'Keep') else 'kix.dc' + _hl.md5('|'.join(pair).encode()).hexdigest()[:8]
+def def_requests(pairs, have=()):
+    out = []
+    for pair in dict.fromkeys(pairs):
+        i = def_id(pair)
+        if i in have: continue
+        labels = {'unans': 'Unanswered', 'approve': pair[0], 'keep': pair[1], 'change': 'Change', 'discuss': 'Discuss'}
+        out.append({'createDropdownDefinition': {'dropdownDefinition': {'dropdownDefinitionId': i, 'dropdownDefinitionProperties': {
+            'title': 'Decision', 'options': [{'optionId': 'dropdownItem.' + k, 'displayValue': labels[k], 'textStyle': {'backgroundColor': rgb(col)}} for k, _t, col in OPTS]}}}})
+    return out
+def find_all(o, key, out=None):
+    out = set() if out is None else out
+    if isinstance(o, dict):
+        for k, v in o.items():
+            if k == key and isinstance(v, str): out.add(v)
+            else: find_all(v, key, out)
+    elif isinstance(o, list):
+        for v in o: find_all(v, key, out)
+    return out
 EXPL_HEAD = ['ID', 'Where · what it is', 'As it stands', 'If changed', 'Back to the list']
 EXPL_W = [40, 230, 230, 230, 80]
 
@@ -153,8 +181,8 @@ class Builder:
         # jobs: (index, text, link) ; link is None, {'url':..} or {'heading':{..}}; or (index, None, 'chip')
         reqs = []
         for idx, text, link in sorted(jobs, key=lambda j: -j[0]):
-            if link == 'chip':
-                reqs.append({'insertDropdown': {'location': s.loc(idx, tab), 'dropdownDefinitionId': DD, 'selectedOptionId': 'dropdownItem.unans'}})
+            if link == 'chip':     # text holds the row's dropdown definition id
+                reqs.append({'insertDropdown': {'location': s.loc(idx, tab), 'dropdownDefinitionId': text or DD, 'selectedOptionId': 'dropdownItem.unans'}})
                 continue
             if not text: continue
             reqs.append({'insertText': {'location': s.loc(idx, tab), 'text': text}})
@@ -184,9 +212,8 @@ class Builder:
                 for j, v in enumerate(vals): jobs.append((s.cell_start(cells[j]), v, None))
                 if 'Sefaria' in hdr:   # parts about the text have a Sefaria link column; others (layout, front matter) don't
                     jobs.append((s.cell_start(cells[hdr.index('Sefaria')]), 'Sefaria', {'url': row['url']}))
-                jobs.append((s.cell_start(cells[hdr.index('Decision')]), None, 'chip'))
-        reqs = [{'createDropdownDefinition': {'dropdownDefinition': {'dropdownDefinitionId': DD, 'dropdownDefinitionProperties': {
-            'title': 'Decision', 'options': [{'optionId': 'dropdownItem.' + i, 'displayValue': t_, 'textStyle': {'backgroundColor': rgb(col)}} for i, t_, col in OPTS]}}}}]
+                jobs.append((s.cell_start(cells[hdr.index('Decision')]), def_id(choices(row)), 'chip'))
+        reqs = def_requests([choices(r) for r in c['rows']])
         s.batch(reqs + s.fill('t.0', jobs))
         return s.id
 
@@ -354,11 +381,9 @@ class Builder:
             cells = tr[i]['tableCells']
             for j, v in enumerate([row['id']] + row['cells']): jobs.append((s.cell_start(cells[j]), v, None))
             if 'Sefaria' in hdr: jobs.append((s.cell_start(cells[hdr.index('Sefaria')]), 'Sefaria', {'url': row['url']}))
-            jobs.append((s.cell_start(cells[hdr.index('Decision')]), None, 'chip'))
-        reqs = s.fill('t.0', jobs)
-        for q in reqs:
-            if 'insertDropdown' in q: q['insertDropdown']['dropdownDefinitionId'] = dd
-        s.batch(reqs)
+            jobs.append((s.cell_start(cells[hdr.index('Decision')]), def_id(choices(row)) if row.get('choices') else dd, 'chip'))
+        have = find_all(tabs, 'dropdownDefinitionId')
+        s.batch(def_requests([choices(r) for r in rows if r.get('choices')], have) + s.fill('t.0', jobs))
 
         # Explanations: appended at the end of its tab
         econ0 = s.body(s.etab)

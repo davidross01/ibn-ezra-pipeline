@@ -5,9 +5,9 @@ What a review list looks like as a Google Doc, how it is kept, found and archive
 ## The rules
 
 ### 1. A Google Doc in your account, answered with dropdowns
-**Rule.** Every review list is a Google Doc in your own account, with a real dropdown (a "chip") in the Decision column of every row — Unanswered, Approve, Keep, Change, Discuss — and a Your note column, so you can answer from any device.
+**Rule.** Every review list is a Google Doc in your own account, with a real dropdown (a "chip") in the Decision column of every row — Unanswered, the row's own two choices (08 Review, rule 13), Change, Discuss — and a Your note column, so you can answer from any device.
 
-**Why.** You answer reviews on your phone, without your computer. *Ruling 103.*
+**Why.** You answer reviews on your phone, without your computer. *Rulings 103, 116.*
 
 ### 2. How a doc is laid out
 **Rule.** A title and a date; a short **How to use this list** (what Approve, Keep, Change and Discuss mean, and "tell me 'the review is done' and I will apply every decision"); then one Part per topic, each with a heading, one sentence saying how many items it has, and its table. The columns: ID, the context (Where, Issue, Now, Alternative), a Sefaria link for rows about the text, Decision, Your note, Explanation. Closing sections may follow ("What the check found clean", "Right after the review", "Roadmap").

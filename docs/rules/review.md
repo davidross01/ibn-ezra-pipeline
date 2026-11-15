@@ -84,10 +84,12 @@ How a change reaches the book: everything goes to you as a row in a review list,
 
 **Why.** Your standing preference: you decide from the Hebrew and the full sentence. *Ruling 94.*
 
-### 13. Each row says plainly what each answer does
-**Rule.** A row says plainly what Approve and Keep each do: **Approve** = do what the Alternative says; **Keep** = leave the book as it is. Where possible a row has two clear options ("Do it" / "Leave it").
+### 13. Each row's answers say what they do
+**Rule.** The dropdown on each row offers that row's own two choices in plain words — the first does what the Alternative says, the second leaves the book as it is — then Change and Discuss. A change in wording is "Change it" / "Leave it"; a row about where a ruling belongs might be "Carry over" / "Ask again". Approve and Keep are not used in new docs.
 
-**Why.** In Noach, Approve on E5–E7 could mean either "the PDF is right" or "do what I asked"; it had to be asked again.
+**Example.** In Rulings by scope, Approve meant "carry over" in Part A but "Ibn Ezra's alone" in Part B, and it had to be asked twice.
+
+**Why.** You should not have to look up what a button means. *Ruling 116.* (Before it: in Noach, Approve on E5–E7 could mean either "the PDF is right" or "do what I asked".)
 
 ### 14. A Sefaria link on rows about the text
 **Rule.** Every row about Ibn Ezra's text has a column after Alternative with one blue link, the single word "Sefaria", to that exact comment. A row about the Chumash verse links to the verse with the translations panel open. Rows with nothing to compare (layout, whole-book rules) have no link.
@@ -106,7 +108,11 @@ How a change reaches the book: everything goes to you as a row in a review list,
 
 **Example.** In the Bereshit lists, Approve meant "the PDF is right" in Parts A–E of Review List 2, but "apply the proposal" elsewhere; Noach Review List 1 used the first meaning.
 
-**Why.** Nothing goes into the book without your answer.
+A **Change** whose note gives the new wording ("Have it say: …", "Just say ‘placenta’ instead of afterbirth") is applied as you wrote it and listed in the report; a Change note that does not give the wording is asked about first.
+
+A row whose change also alters the Key Insights booklet (which quotes the book's English) says so in its Explanation, and the booklet changes with it.
+
+**Why.** Nothing goes into the book without your answer; your own words are an answer. *Rulings 117, 118.*
 
 ### 17. Discuss rows are explained, then asked with checkboxes
 **Rule.** A Discuss row is explained in plain words — the Hebrew, what each choice means, a real example — and the decision is asked with checkboxes in the same turn. Where a Change note can be read two ways, Claude asks with checkboxes before applying. Your answer in chat counts as your answer; your chip in the doc is never changed.
@@ -172,9 +178,11 @@ How a change reaches the book: everything goes to you as a row in a review list,
 - **Rule 12:** a row with no ops (made by hand) must give `changed` — the text as it would read — and `changed_he` where Hebrew changes; make_rows prints EXPLANATION WARNINGS otherwise, fixed before the doc is built. In chat: `python3 -I scripts/explain_rows.py <review> <IDs | --discuss | --change | --open | --noted>` (explain-commentary-row).
 - **Rule 14:** the link text is the single word "Sefaria", no quotation in the cell. Comment: https://www.sefaria.org/Ibn_Ezra_on_Genesis.<chapter>.<verse>.<comment>?lang=bi — Sefaria sometimes files a comment under another verse than the printed edition (the cherubim at 3:23), so pick the comment by its text. Verse: https://www.sefaria.org/Genesis.3.8?lang=bi&with=Translations&lang2=en. Rows with nothing to compare: "—" or no column. Fill it when the row is made.
 - **Rule 15:** made by the Builder for a new doc; read_answers brings it up to date.
-- **Rule 16:** read the answers with `read_answers('<key>')` or `review_status()` in the workbench, never by loading the whole doc.
+- **Rule 13:** a row gives `choices` [first, second] (make_rows' default for a new list: "Change it" / "Leave it"; a bundled row "Confirm all" / "Leave as drafted"; never "Change", "Discuss" or "Unanswered"). make_rows writes them into the rows file, names them in the Explanation instead of Approve / Keep, and replaces the Approve / Keep bullets in How to use. scripts/review_doc.py makes one dropdown definition per pair; read_answers (wb.py) reads the first back as Approve and the second as Keep (the words chosen kept as `chip`), so everything downstream still works with Approve / Keep.
+- **Rule 16:** read the answers with `read_answers('<key>')` or `review_status()` in the workbench, never by loading the whole doc. A Change row: apply_answers.py writes `<key>_change_draft.json` from the note ("X instead of Y" swaps the word in the row's places; "say: X" gives the wording); check it, copy each settled row into `<key>_change.json` ({row: {note, ops}}), run again — the ops are applied like an Approve and logged as "your note". Booklet quotes: make_rows finds every string of insights/*.py that an op would no longer match (`also` in the rows file, said in the Explanation); apply_answers replaces it in those files (by hand where the new quote cannot be worked out, or on a Change).
 - **Rule 17:** save the chat answer to `<rows file>` → chat_answers.json ({id: {decision, note, date}}); apply-review-decisions reads it after answers.json.
 - **Rule 20:** review_audit/apply_answers.py applies a names row itself (Approve changes the name in the parasha's work files; either answer goes into confirmed_names.json; a name also found in another parasha is reported for a book-wide row) and stops on any other approved row with no ops until it is made by hand and listed in `<key>_by_hand.json`.
+- **Rule 21 (pages):** a model newer than its build fails the pages check only if its content differs from what the last publish built (book.json `built_hash` against `scripts/stage.py` content_hash); a re-run that rewrote an unchanged model passes.
 - **Rule 21:** `python3 -I scripts/check_all.py <folder>` (repo top) runs consonant_check, vowel_check, misprint_scan and check_book, and checks Text lines, Onkelos lines, ה׳ in the English, Hebrew sources, partly pointed words, ideas and idea sources, "its parallel" and the page numbers. Hits already read are kept in `<folder>/review/check_baseline.json`; only NEW hits are listed; after reading every one, rerun with `--accept`. check_book alone: `python3 scripts/check_book.py <model.json> build/rep.json` — one report of every check (markup, Hashem, letter and vowel names, stray characters, typing slips, empty Text labels, "agrees with Sefaria", source lines, reference brackets, glosses on defined words, verse-band brackets, term spellings, the terms audit, the layout report). Fix the mechanical hits, make rows of the translation ones ("Heth" and "Shin’ar" are false hits of the letter check; Lech Lecha 15:2 and 15:8 are expected hits of the Hashem check). Also run clean.py --check (notes.md, "For Claude").
 - **Rule 22:** the commentary-audit skill (Parts A–F, renumber once at the end); checklist in review_audit/checklist.md.
 - **Rule 24:** `scripts/brackets_shown.py` lists every (printed) [correction] in the Hebrew and every [bracket] in the verse band that stands in no review list (rows files and archived lists); check_all "Brackets shown" fails on any. A new draft's brackets each get a row in its first list (Part A for the verse band, Part G for misprints); a bracket a held change removes (book.json "held" "edits") is not counted.

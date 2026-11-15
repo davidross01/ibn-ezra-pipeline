@@ -183,7 +183,11 @@ def own_checks(folder, M):
             out['pages'].append(f"built with Chromium {have}, but {me['parasha']} was laid out with {want} (book.json): "
                                 f"page breaks can move; rebuild where Chromium {want} is installed, or ask David before re-paginating")
         if os.path.getmtime(rep) < os.path.getmtime(os.path.join(ROOT, folder, MODEL.get(folder, 'data/model.json'))):
-            out['pages'].append('the model is newer than the last build: rebuild before trusting the layout checks')
+            # A newer date alone is not a change (a re-run of publish_current.py rewrites an unchanged model): when
+            # book.json records the content the last publish built from, compare the content instead (15 Nov 2026).
+            sys.path.insert(0, os.path.join(ROOT, 'scripts')); import stage
+            if not me.get('built_hash') or stage.content_hash(folder) != me['built_hash']:
+                out['pages'].append('the model is newer than the last build: rebuild before trusting the layout checks')
     else:
         out['pages'].append('no build/rep.json: layout checks skipped (build first)')
     return out
