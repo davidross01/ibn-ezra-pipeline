@@ -1,0 +1,13 @@
+{"about": "Places scripts/quote_hebrew.py finds that are not quotations of the verse referred to, read by hand (16 Nov 2026): each is skipped by its text. Add a place only with its reason.",
+ "places": [
+  {"folder": "noach", "text": "“and all the high mountains were covered” {i}(7:19)", "why": "quotes the verse on the same page (7:19), whose Hebrew stands above"},
+  {"folder": "noach", "text": "“cursed be the father of Kena’an”", "why": "the Gaon's proposed reading, not the verse's words"},
+  {"folder": "vayera", "text": "“taking” is written", "why": "the verse's own word, compared with 12:15"},
+  {"folder": "noach", "text": "fish are “flesh”", "why": "a category word, not a quotation of Numbers 11:22"},
+  {"folder": "lech_lecha", "text": "“oak.” Moreh is perhaps Mamre", "why": "the verse's own word; 14:13 is a comparison"},
+  {"folder": "lech_lecha", "text": "“His brothers” are the sons of Keturah", "why": "the verse's own words; 25:1–4 is a comparison"},
+  {"folder": "vayera", "text": "“eats” the offering", "why": "the verse's own word; Leviticus 6:3 is a comparison"},
+  {"folder": "vayera", "text": "“angel,” as Haggai is", "why": "the verse's own word; Haggai 1:13 is a comparison"},
+  {"folder": "vayera", "text": "“pressed” the people", "why": "the verse's own word; Exodus 5:13 is a comparison"},
+  {"folder": "vayera", "text": "“He had spoken” is the angel", "why": "the verse's own words; 18:9 is a comparison"},
+  {"folder": "vayera", "text": "“on Mount Moriah,” at the threshing floor", "why": "explains the place; II Samuel 24:18 is a comparison"}]}
