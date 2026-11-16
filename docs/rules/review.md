@@ -166,8 +166,18 @@ A row whose change also alters the Key Insights booklet (which quotes the book's
 
 ---
 
+### 25. Every review list ends with a Part for your own additions
+**Rule.** Every review list has, as its last Part, "Your additions": ten empty rows where you write, in Your note, any change you want that the list does not ask about — where it is and what to change. You do not need to tell me in chat. Set the row's Decision to "Make my change"; when you say the review is done, each one is made as you wrote it, together with the answered rows. If one is unclear, or would touch another rule, I ask you before making it. Rows you leave empty are ignored.
+
+**Example.** In Vayetze Review List 1, Part Z: you might write in Z1’s note “31:40 — say ‘frost’, not ‘ice’” and choose Make my change.
+
+**Why.** "Always have a section for my addition ons in the review, which i dont have to tell you in claude that i want changed." *Ruling 120.*
+
+---
+
 ## For Claude: how it is done and checked
 
+- **Rule 25:** `review_audit/make_rows.py` adds Part Z, "Your additions" (Z1–Z10, choices "Make my change" / "Not used", no ops), to every list that is not LEGACY; a rows file may not leave it out. `read_answers` reads the notes like any row. Applying: a Z row with "Make my change" (or a note and no answer) is carried out by hand from David's note in the chN.py / model files, logged in the round's applied-rows log with his words; an unclear one, or one that conflicts with a rule, becomes a Discuss question before anything is changed; "Not used" and empty rows are skipped. A Z change that touches a word elsewhere follows the same consistency check as any row (other verses with the same Hebrew word, the Key Insights booklet).
 - **Rules 1–3:** a row has where, the Hebrew line, Now, Proposal / Alternative, Decision chip, Your note, and an Explanations-tab entry with links (09 Review doc). The review-list-google-doc skill builds the doc.
 - **Rule 4:** `refresh_drive()` → `sync_reviews()` (scripts/workbench/wb.py) moves open and answered docs into "Reviews in progress" (id 1O7WtvLyYhia5hb0PldzL5NKzgZMLRStN) and archives every doc set to `applied` (text + decisions.json committed under `<parasha>/review/archive/`), then moves it to "Older reviews" (id 1jUeiNkiIifdx6nSU8U8tosrQOjf5LX9A). Which docs are open, answered or archived is kept only in review_docs.json (the registry). Details: review_doc.md, "The reviews folder on Drive" and "Archiving".
 - **Rule 5:** ibn-ezra-idea-notes; rows that fill the same place are anchored on the sentence after it, so approved rows go in in ID order. Each row names its source, read on Sefaria, and is checked by cite_check (notes.md, rule 13).
