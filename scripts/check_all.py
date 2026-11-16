@@ -125,6 +125,9 @@ def own_checks(folder, M):
     import quote_hebrew
     for c, v, q in quote_hebrew.missing(folder, M):
         out['Quote without Hebrew'].append(f"note {c}:{v}: {q[:90]}")
+    # and so does a verse Ibn Ezra quotes in the English commentary (translation.md, rule 19; Ruling 119)
+    for c, v, q in quote_hebrew.missing(folder, M, sec='ec'):
+        out['Quote without Hebrew'].append(f"commentary {c}:{v}: {q[:90]}")
     # (printed) [correction] -> Text line in a note of the same verse
     notes = {}
     for b in M['notes']:

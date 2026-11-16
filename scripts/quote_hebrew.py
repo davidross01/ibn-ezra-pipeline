@@ -1,4 +1,5 @@
-# A verse quoted in a note gives its Hebrew before the English (notes.md, rule 17; Ruling 110, 12 Nov 2026).
+# A verse quoted in a note gives its Hebrew before the English (notes.md, rule 17; Ruling 110, 12 Nov 2026); so does
+# a verse Ibn Ezra quotes in the English commentary (translation.md, rule 19; Ruling 119, 16 Nov 2026).
 # Finds an English quotation “…” followed by a verse reference, e.g. “Take, I pray, your son” (22:2), with no Hebrew
 # ({h} or {hb}) just before it. A place that stands in an open review list (review_docs.json, status open or
 # answered) is waiting for David and is not counted.
@@ -9,10 +10,10 @@ MODEL = {'bereshit': 'bereshit/data/model_final5.json'}
 PAT = re.compile(r'“([^”]{2,160})”\s*\((?:(?:I{1,2} )?[A-Z][a-z]+(?: of Songs)? )?\d+:\d+[^)]*\)')
 
 
-def places(folder, M=None):
+def places(folder, M=None, sec='notes'):
     M = M or json.load(open(os.path.join(ROOT, MODEL.get(folder, f'{folder}/data/model.json')), encoding='utf-8'))
     out = []
-    for b in M['notes']:
+    for b in M[sec]:
         t = b.get('text') or ''
         for m in PAT.finditer(t):
             before = t[max(0, m.start() - 40):m.start()]
@@ -31,16 +32,17 @@ def waiting():
     return '\n'.join(t)
 
 
-def missing(folder, M=None, _w={}):
+def missing(folder, M=None, _w={}, sec='notes'):
     if 'w' not in _w:
         _w['w'] = waiting()
-    return [p for p in places(folder, M) if p[2] not in _w['w']]
+    return [p for p in places(folder, M, sec) if p[2] not in _w['w']]
 
 
 if __name__ == '__main__':
     fs = sys.argv[1:] or ['bereshit', 'noach', 'lech_lecha', 'vayera', 'chayei_sarah', 'toledot']
     n = 0
-    for f in fs:
-        for c, v, q in missing(f):
-            print(f, f'{c}:{v}', q); n += 1
+    for sec in ('ec', 'notes'):
+        for f in fs:
+            for c, v, q in missing(f, sec=sec):
+                print(sec, f, f'{c}:{v}', q); n += 1
     print(n, 'quotations without their Hebrew')

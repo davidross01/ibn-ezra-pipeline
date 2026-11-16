@@ -134,6 +134,13 @@ The rules for the English: the translation of Ibn Ezra, the verse band, God's na
 
 **Why.** A reader who meets two spellings may think they are two people. You first chose the spelling with a final h (Audit 7), then changed it to "Saadia". *Ruling 108.*
 
+### 19. A verse Ibn Ezra quotes: the Hebrew, then the English
+**Rule.** When Ibn Ezra quotes a verse (or a few words of one) in the English commentary, the English gives the Hebrew words first, pointed with the Bible's vowels, then their English, then the reference — as Bereshit does from its first page. The same holds for the notes (07 Notes, rule 17).
+
+**Example.** Toledot 25:21: not "entreat Hashem" (Exodus 8:4) alone, but the Hebrew words of Exodus 8:4, then "entreat Hashem" (Exodus 8:4).
+
+**Why.** "Throughout the different parashot … not adding the Hebrew sentences to the English translation you did at the beginning with Bereshit and Noach." The reader of the English sees the words Ibn Ezra is reading. *Ruling 119.*
+
 ---
 
 ## For Claude: how it is done and checked
@@ -146,5 +153,6 @@ The rules for the English: the translation of Ibn Ezra, the verse band, God's na
 - **Rule 13:** Yerushalayim stands at Bereshit 2:11, Lech Lecha 12:9, 14:13, 14:18, Vayera 18:26, 22:2. review_round/apply_places.py (its MAP is the list) applied the place names to Bereshit, Noach and Lech Lecha; the Place names row of Lech Lecha Review List 1 Part F is the model row.
 - **Rule 14:** in the model a letter is {h}א{/h}; a vowel sign {v}אָ{/v}; in the foot strip <span class="vs" dir="rtl">אָ</span>; a root type {h}פ״א{/h}. Before each draft, search the English for letter and vowel names and convert them (the check's hits on "Shin’ar" and "Heth" are names, not letters).
 - **Rule 15:** the Hebrew alone is {h}…{/h}, with no {g}…{/g} gloss. scripts/check_book.py lists every glossed Hebrew word followed by "is", "means" or "are called"; ask of each whether Ibn Ezra is defining it.
+- **Rule 19:** `scripts/quote_hebrew.py` finds an English quotation “…” followed by a verse reference with no Hebrew just before it, in the commentary and the notes; check_all "Quote without Hebrew" runs it on every parasha. The Hebrew is cut from the verse by program (`review_round/quote_hebrew_ec.py`: Ibn Ezra's own quotation in his Hebrew at that verse shows which words; the verse in src/tanakh.json gives the Bible's vowels and its read form; the Name ה׳; a place the program cannot settle is read and its words taken by position, never typed). A new parasha has it from draft 1.
 - **Rule 18:** check_all "Saadia" flags the old spelling with the final h in the commentary and notes of every parasha; the booklets' sources (insights/*.py) and the key to terms (bereshit/data/front.json) are searched the same way when they are rebuilt. While a change of spelling is held (book.json "held", sources.md, For Claude), the parashot it lists are checked for the spelling they still have, so no parasha mixes the two. The change itself is `review_round/apply_saadia_r108.py` (`--dry` lists the places); publish_current.py runs it when the hold ends.
 - **Rule 16:** check_all "Its parallel" flags "its brother", "their brothers" and "is the brother of" in the commentary and notes; accept a literal one once read.
