@@ -59,9 +59,19 @@ How Ibn Ezra's grammar terms are translated: the rules, then the glossary itself
 
 ---
 
+### 5. Each entry of the key to terms explains the term
+**Rule.** An entry of the key to terms does more than give the English: in two to four sentences it says what the term means, how it differs from the terms beside it, and how it changes the reading of a verse, with an example from the book. The back glossary takes the key's fuller wording where you approve it (Key to Terms Review List 1, row H1); the foot-of-page strip stays very short.
+
+**Example.** The light conjugation: not only "Kal (2:7)", but that it is the plain action, against the heavy (the action done with force or thoroughly) and the heavy with an added letter (causing another to act), with וַיִּיצֶר at 2:7.
+
+**Why.** "The key terms list at the front when it says light or heavy conjugation and give an example it doesn't really tell the reader what the difference and how it had an effect on the text and it's understanding." *Ruling 121.*
+
+---
+
 ## For Claude: how it is done and checked
 
 - The grammar sheet is kept in the project as ref/grammar_sheet.png; if it is missing, ask David for it. Check every term against it before translating, and again before each draft.
+- Rule 5: the key is in bereshit/data/front.json (pages 6–8 of "before"); a new or changed entry goes to David as a row (Key to Terms Review List 1, review_audit/key1_rows.py, Hebrew copied by `H()` from the book), then front.json is edited and the front matter rebuilt.
 - Glossary entry 1 and rule 2: the foot-of-page definitions are in data/foot_terms.json of each parasha (page.md, rule 9); the key to terms is in bereshit/data/front.json.
 - **Before each draft** run `python3 scripts/terms_audit.py <model.json>` in the parasha folder (scripts/check_book.py runs it too; Bereshit's model is data/model_final5.json, the others' data/model.json). For every term it finds in the Hebrew, it checks that the English of the same verse uses the house rendering, and lists the places that don't and the terms rendered more than one way. Read each one. A real inconsistency becomes a review-list row, not a silent change, because it is a translation change. The places of rule 4 are expected hits.
 - Rule 3: the grammar Part was Part G in the Bereshit list and Part C in Noach's and Lech Lecha's; if a list has none, create one. Each row gives where, the Hebrew line, Now, Proposal and why Claude is unsure.
