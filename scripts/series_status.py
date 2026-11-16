@@ -242,15 +242,6 @@ def main():
     print('\nDocuments in Drive ("-03 How it is made"): ' + ('all current' if not rep['handbook'] else f"{len(rep['handbook'])} out of date"))
     for l in rep['handbook']:
         print('  ' + l)
-    # the profiles' hand-made copies in David's claude.ai project (not synced from Drive): stale when the profile changed
-    pc = os.path.join(ROOT, 'docs', 'profiles', 'project_copies.json')
-    if os.path.exists(pc):
-        import hashlib
-        stale = [(k, v) for k, v in json.load(open(pc, encoding='utf-8'))['copies'].items()
-                 if hashlib.sha256(open(os.path.join(ROOT, k), 'rb').read()).hexdigest()[:16] != v.get('sha')]
-        print('Profiles in the claude.ai project: ' + ('all current' if not stale else f'{len(stale)} out of date'))
-        for k, v in stale:
-            print(f"  {v['project_path']}: rewrite it from {k} with project_write, then record its sha in docs/profiles/project_copies.json")
     if rep['uncommitted']:
         print(f"\nUncommitted changes ({len(rep['uncommitted'])}):")
         for l in rep['uncommitted'][:20]:
