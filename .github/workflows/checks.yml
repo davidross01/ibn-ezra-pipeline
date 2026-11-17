@@ -1,30 +1,46 @@
-# Runs every check of every parasha on each push (scripts/check_all.py --ci). A red X on a commit means a new hit
-# that was not read and accepted, or a broken script; open the run to see which parasha and which check.
+# The checks of the book on GitHub (scripts/check_all.py --ci). A red X on a commit means a new hit that was not read
+# and accepted, or a broken script; open the run to see which parasha and which check.
+#
+# Saving Actions minutes (David, 17 Nov 2026: the month's free minutes ran out; they come back on 15 Dec):
+# - one job, not seven (each job is billed as at least a full minute);
+# - a push checks only the parashot it touches (scripts/ci_changed.py), every parasha when shared code, rules or
+#   sources change, and nothing at all when it changes only review answers, the review registry or the handbook copies;
+# - every parasha once a week (Sunday), and whenever started by hand (Actions → checks → Run workflow).
+# UNTIL 15 DEC 2026 only the hand-started run is on: the "push" and "schedule" lines below are commented out, and all
+# checks are run in the session before each push. On 15 Dec remove the "#" from those lines.
 name: checks
 on:
-  push:
   workflow_dispatch:
+#  push:
+#    paths-ignore:
+#      - 'review_audit/*_answers.json'
+#      - 'review_audit/*_chat_answers.json'
+#      - 'review_docs.json'
+#      - 'docs/handbook/**'
+#      - 'docs/skills/pending.json'
+#  schedule:
+#    - cron: '17 4 * * 0'
 jobs:
   check:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        parasha: [bereshit, noach, lech_lecha, vayera, chayei_sarah, toledot]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: check_all ${{ matrix.parasha }}
-        run: python3 -I scripts/check_all.py ${{ matrix.parasha }} --ci
-  rulings:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      - name: check_all on the parashot this push touches
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            folders=$(python3 -I scripts/ci_changed.py "${{ github.event.before }}" "${{ github.sha }}")
+          else
+            folders=$(python3 -I scripts/ci_changed.py all)
+          fi
+          echo "checking: $folders"
+          fail=0
+          for f in $folders; do python3 -I scripts/check_all.py "$f" --ci || fail=1; done
+          exit $fail
       - name: rulings log current, no superseded model pointed to
         run: python3 -I scripts/rulings.py --check
       - name: every open idea row checked against its source
